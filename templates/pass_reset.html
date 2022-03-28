@@ -1,0 +1,7 @@
+{% autoescape off %}
+welcome to UMS
+Hello,
+You can reset your password by clicking the following link
+Reset_link : http://{{ domain }}{% url "reset" uidb64=uid token=token %}
+
+{% endautoescape %}
