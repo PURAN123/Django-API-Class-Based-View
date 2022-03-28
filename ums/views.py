@@ -84,6 +84,7 @@ class SuccessEmailView(generics.ListAPIView):
       return Response(data,status=status.HTTP_200_OK)
 
 class CustomTokenCreation(ObtainAuthToken):
+   """Return user login token with user id"""
    def post(self,request,*args, **kwargs):
       response = super(CustomTokenCreation,self).post(request)
       token = Token.objects.get(key= response.data['token'])
@@ -91,6 +92,7 @@ class CustomTokenCreation(ObtainAuthToken):
 
 
 class ChangePasswordView(generics.CreateAPIView):
+   """Change your password but you should have your old password"""
    serializer_class = ChangePasswordSeriallizer
    permission_classes= [IsAuthenticated,]
    def get_object(self):
@@ -111,7 +113,8 @@ class ChangePasswordView(generics.CreateAPIView):
       return Response(serializer.errors,status=status.HTTP_404_NOT_FOUND)
 
 
-class RestPasswordEmailView(generics.CreateAPIView):  
+class RestPasswordEmailView(generics.CreateAPIView):
+   """Forgot your password, enter your mail you will get email to reset password"""
    serializer_class = PasswordResetEmailSerializer
    def create(self, request, *args, **kwargs):
       serializer = self.get_serializer(data = request.data)
@@ -140,6 +143,7 @@ class RestPasswordEmailView(generics.CreateAPIView):
       return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class NewPasswordCreateView(generics.CreateAPIView):
+   """Check token and reset user password"""
    serializer_class = NewPasswordCreateSerializer
    permission_classes=[AllowAny,]
    def create(self, request,uidb64, token):

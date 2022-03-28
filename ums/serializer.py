@@ -65,18 +65,21 @@ class UserUpdateSerializer(serializers.ModelSerializer):
       read_only_fields= ('username', "email",)
 
 class ChangePasswordSeriallizer(serializers.Serializer):
+   """Change user password with old password"""
    model=User
    old_password= serializers.CharField(required=True)
    password1= serializers.CharField(required=True)
    password2= serializers.CharField(required=True)
 
 class PasswordResetEmailSerializer(serializers.Serializer):
+   """Reset your password with the help of email address"""
    email= serializers.EmailField(required=True)
    class Meta:
       model= User
       fields=['email']
          
 class NewPasswordCreateSerializer(serializers.Serializer):
+   """Set your new password by the link sent on email address"""
    model=User
    password1= serializers.CharField(required=True)
    password2= serializers.CharField(required=True)
