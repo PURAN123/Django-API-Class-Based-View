@@ -304,12 +304,4 @@ class PasswordResetUpdate(APITestCase):
       response= self.client.post(reverse("change-password"), data= data)
       self.assertEqual(response.status_code, status.HTTP_200_OK)
    
-   def test_reset_password(self):
-      data = {
-         'password1':'users',
-         'password2':'users',
-      }
-      response= self.client.post(reverse('reset', kwargs={'uidb64':1,'token':"b30rc8-ac2b6fc05b920edcd64041005632c281"}),data=data)
-      self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-
+   
