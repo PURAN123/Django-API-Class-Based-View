@@ -136,6 +136,8 @@ class ResetNewPasswordView(generics.CreateAPIView):
          myuser= None
       if myuser is not None and generate_token.check_token(myuser,token):
          if serializer.is_valid():
+            if not serializer.data['password1']==serializer.data['password2']:
+               return Response({"Errors":"Oops, password1 and password2 are not same"})
             myuser.set_password(request.data['password1'])
             myuser.save()
             return Response({"success":"Password reset successfully! "},status=status.HTTP_200_OK)
