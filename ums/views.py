@@ -1,6 +1,5 @@
 from django.contrib.sites.models import Site
 from django.core.mail import EmailMessage
-from django.http import HttpResponse
 from django.shortcuts import redirect
 from django.template.loader import render_to_string
 from django.utils.encoding import force_bytes, force_text
@@ -10,7 +9,6 @@ from rest_framework import generics, status, viewsets
 from rest_framework.authentication import (SessionAuthentication,
                                            TokenAuthentication)
 from rest_framework.authtoken.models import Token
-from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.filters import SearchFilter
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
@@ -21,7 +19,7 @@ from .permissions import CustomPermission
 from .serializer import (ChangePasswordSeriallizer,
                          NewPasswordCreateSerializer,
                          PasswordResetEmailSerializer, UserSerializer,
-                         UserUpdateSerializer)
+                         UserUpdateSerializer,TokenGeneratorSerializer)
 from .tokens import generate_token
 
 
@@ -59,36 +57,21 @@ class UserView(viewsets.ModelViewSet):
          return Response({'message':"Check your email and activate your account!"},status=status.HTTP_201_CREATED)
       return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
 
-def activate(request,uidb64,token):
-   """Activate your account by clicking on the link sent to registered amil address"""
-   try:
-      uid = force_text(urlsafe_base64_decode(uidb64))
-      myuser=User.objects.get(pk=uid)
-   except (TypeError,ValueError,OverflowError,User.DoesNotExist):
-      myuser=None
-   if myuser is not None and generate_token.check_token(myuser,token):
-      myuser.is_active=True
-      myuser.save()
-      return redirect("/success")
-   else:
-      return HttpResponse({"Error":"There is some problem to activate your account."})
-
 class SuccessEmailView(generics.ListAPIView):
    """"""
    """Send the user a success message"""
-   def list(self, request, *args, **kwargs):
-      data = {
-         "details":"Your account has been activated!",
-         "login":"You can log in now in login portal!",
-      }
-      return Response(data,status=status.HTTP_200_OK)
-
-class CustomTokenCreation(ObtainAuthToken):
-   """Return user login token with user id"""
-   def post(self,request,*args, **kwargs):
-      response = super(CustomTokenCreation,self).post(request)
-      token = Token.objects.get(key= response.data['token'])
-      return Response({'key':token.key, "id":token.user_id})
+   def list(self,request,uidb64,token):
+      try:
+         uid = force_text(urlsafe_base64_decode(uidb64))
+         myuser=User.objects.get(pk=uid)
+      except (TypeError,ValueError,OverflowError,User.DoesNotExist):
+         myuser=None
+      if myuser is not None and generate_token.check_token(myuser,token):
+         myuser.is_active=True
+         myuser.save()
+         return Response({"success":"Youraccount has been activated successfully","Note":"You can login in login portal"},status=status.HTTP_200_OK)
+      else:
+         return Response({'error':"There is some problem to activate your account"})
 
 
 class ChangePasswordView(generics.CreateAPIView):
@@ -111,7 +94,6 @@ class ChangePasswordView(generics.CreateAPIView):
       else:
          return Response({"details":"password1 does not match with password2"},status=status.HTTP_400_BAD_REQUEST)
       return Response(serializer.errors,status=status.HTTP_404_NOT_FOUND)
-
 
 class RestPasswordEmailView(generics.CreateAPIView):
    """Forgot your password, enter your mail you will get email to reset password"""
@@ -160,3 +142,22 @@ class NewPasswordCreateView(generics.CreateAPIView):
             myuser.save()
             return Response({"details":"Password reset successfully! "},status=status.HTTP_200_OK)
          return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
+
+class Customtokencreate(generics.CreateAPIView):
+   serializer_class= TokenGeneratorSerializer
+   queryset = User.objects.all()
+   # permission_class= [AllowAny,]
+   def create(self,request):
+      serializer= self.get_serializer(data= request.data)
+      print("\n\n\n",serializer)
+      if serializer.is_valid():
+         try:
+            email = User.objects.get(email=serializer.data.get('email'))
+            user = User.objects.get(username=serializer.data.get('username'))
+         except:
+            return Response({"errors":"Provided Email or username doesn't associate with any User."})
+         if not user.check_password(serializer.data.get('password')):
+            return Response({"error":"Oops, password is wrong"})
+         token = Token.objects.get(user=user)
+         return Response({"Token":token.key, "user":token.user_id}, status= status.HTTP_200_OK)
+      return Response(serializer.errors)

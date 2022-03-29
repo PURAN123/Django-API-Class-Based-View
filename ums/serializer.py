@@ -84,3 +84,8 @@ class NewPasswordCreateSerializer(serializers.Serializer):
    password1= serializers.CharField(required=True)
    password2= serializers.CharField(required=True)
 
+class TokenGeneratorSerializer(serializers.Serializer):
+   model = User
+   username= serializers.CharField()
+   email=    serializers.EmailField()
+   password= serializers.CharField()
