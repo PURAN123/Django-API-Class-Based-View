@@ -2,9 +2,9 @@
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
-from .views import (ChangePasswordView,
+from .views import (ChangePasswordView, CustomLogoutView, Customtokencreate,
                     NewPasswordCreateView, RestPasswordEmailView,
-                    SuccessEmailView, UserView, Customtokencreate)
+                    SuccessEmailView, UserView)
 
 """Create a default router of rest framework"""
 router= DefaultRouter()
@@ -18,6 +18,6 @@ urlpatterns = [
    path('change-password/', ChangePasswordView.as_view(), name='change-password'),
    path("password-reset/", RestPasswordEmailView.as_view(),name= 'password-reset'),
    path("reset/<uidb64>/<token>/",NewPasswordCreateView.as_view(), name="reset"),
-   path('token/',Customtokencreate.as_view(), name= 'token')
+   path('token/',Customtokencreate.as_view(), name= 'token'),
+   path('logout/',CustomLogoutView.as_view(), name= 'logout')
 ]
-

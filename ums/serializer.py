@@ -89,3 +89,6 @@ class TokenGeneratorSerializer(serializers.Serializer):
    username= serializers.CharField()
    email=    serializers.EmailField()
    password= serializers.CharField()
+
+class Customlogout(serializers.Serializer):
+   model=User
