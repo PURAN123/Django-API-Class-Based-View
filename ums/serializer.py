@@ -71,20 +71,20 @@ class ChangePasswordSeriallizer(serializers.Serializer):
    password1= serializers.CharField(required=True)
    password2= serializers.CharField(required=True)
 
-class PasswordResetEmailSerializer(serializers.Serializer):
+class SendPasswordResetEmailSerializer(serializers.Serializer):
    """Reset your password with the help of email address"""
    email= serializers.EmailField(required=True)
    class Meta:
       model= User
       fields=['email']
          
-class NewPasswordCreateSerializer(serializers.Serializer):
+class ResetNewPasswordSerializer(serializers.Serializer):
    """Set your new password by the link sent on email address"""
    model=User
    password1= serializers.CharField(required=True)
    password2= serializers.CharField(required=True)
 
-class TokenGeneratorSerializer(serializers.Serializer):
+class CustomLoginTokenSerializer(serializers.Serializer):
    model = User
    username= serializers.CharField()
    email=    serializers.EmailField()

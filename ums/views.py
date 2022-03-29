@@ -1,6 +1,6 @@
+from django.contrib.auth import login, logout
 from django.contrib.sites.models import Site
 from django.core.mail import EmailMessage
-from django.contrib.auth import login,logout
 from django.template.loader import render_to_string
 from django.utils.encoding import force_bytes, force_text
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
@@ -16,10 +16,9 @@ from userms import settings
 
 from .models import User
 from .permissions import CustomPermission
-from .serializer import (ChangePasswordSeriallizer, Customlogout,
-                         NewPasswordCreateSerializer,
-                         PasswordResetEmailSerializer,
-                         TokenGeneratorSerializer, UserSerializer,
+from .serializer import (ChangePasswordSeriallizer, CustomLoginTokenSerializer,
+                         Customlogout, ResetNewPasswordSerializer,
+                         SendPasswordResetEmailSerializer, UserSerializer,
                          UserUpdateSerializer)
 from .tokens import generate_token
 
@@ -74,7 +73,6 @@ class SuccessEmailView(generics.ListAPIView):
       else:
          return Response({'Oops':"There is some problem to activate your account"})
 
-
 class ChangePasswordView(generics.CreateAPIView):
    """Change your password but you should have your old password"""
    serializer_class = ChangePasswordSeriallizer
@@ -96,9 +94,9 @@ class ChangePasswordView(generics.CreateAPIView):
          return Response({"Oops":"Password1 does not match with Password2"},status=status.HTTP_400_BAD_REQUEST)
       return Response(serializer.errors,status=status.HTTP_404_NOT_FOUND)
 
-class RestPasswordEmailView(generics.CreateAPIView):
+class SendRestPasswordEmailView(generics.CreateAPIView):
    """Forgot your password, enter your mail you will get email to reset password"""
-   serializer_class = PasswordResetEmailSerializer
+   serializer_class = SendPasswordResetEmailSerializer
    def create(self, request, *args, **kwargs):
       serializer = self.get_serializer(data = request.data)
       if serializer.is_valid():
@@ -125,9 +123,9 @@ class RestPasswordEmailView(generics.CreateAPIView):
          return Response({"detials":"Email has been sent to your registered email address"},status=status.HTTP_200_OK)
       return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-class NewPasswordCreateView(generics.CreateAPIView):
+class ResetNewPasswordView(generics.CreateAPIView):
    """Check token and reset user password"""
-   serializer_class = NewPasswordCreateSerializer
+   serializer_class = ResetNewPasswordSerializer
    permission_classes=[AllowAny,]
    def create(self, request,uidb64, token):
       serializer = self.get_serializer(data= request.data)
@@ -144,8 +142,8 @@ class NewPasswordCreateView(generics.CreateAPIView):
             return Response({"success":"Password reset successfully! "},status=status.HTTP_200_OK)
          return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
 
-class Customtokencreate(generics.CreateAPIView):
-   serializer_class= TokenGeneratorSerializer
+class CustomLoginTokenView(generics.CreateAPIView):
+   serializer_class= CustomLoginTokenSerializer
    def create(self,request):
       serializer= self.get_serializer(data= request.data)
       if serializer.is_valid():
@@ -162,6 +160,7 @@ class Customtokencreate(generics.CreateAPIView):
 
 class CustomLogoutView(generics.CreateAPIView):
    serializer_class= Customlogout
+   permission_classes=[IsAuthenticated]
    def create(self,request):
       logout(request)
       return Response({"logout":"logout successful"})
