@@ -14,11 +14,6 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from userms import settings
 
-
-
-
-
-
 from .models import User
 from .permissions import CustomPermission
 from .serializer import (ChangePasswordSeriallizer, CustomLoginTokenSerializer,
@@ -26,7 +21,6 @@ from .serializer import (ChangePasswordSeriallizer, CustomLoginTokenSerializer,
                          SendPasswordResetEmailSerializer, UserSerializer,
                          UserUpdateSerializer)
 from .tokens import generate_token
-
 
 class UserView(viewsets.ModelViewSet):
    authentication_classes=[TokenAuthentication,SessionAuthentication]
