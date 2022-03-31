@@ -53,7 +53,7 @@ class UserView(viewsets.ModelViewSet):
       serializer= UserSerializer(data=data)
       if serializer.is_valid():
          serializer.save()
-         return Response({'Message':"Check your email and activate your account!"},status=status.HTTP_201_CREATED)
+         return Response({'Message':"Please check your email to activate your account!"},status=status.HTTP_201_CREATED)
       return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
 
 class SuccessEmailView(generics.ListAPIView):
@@ -153,7 +153,9 @@ class CustomLoginTokenView(generics.CreateAPIView):
          except:
             return Response({"Oops":"Provided Email or username doesn't associate with any User."})
          if not user.check_password(serializer.data.get('password')):
-            return Response({"error":"Oops, password is wrong"})
+            return Response({"Errors":"Unable to log in with provided credentials."},status=status.HTTP_400_BAD_REQUEST)
+         if not user.is_active:
+            return Response({"Errors":"Unable to log in with provided credentials."},status=status.HTTP_400_BAD_REQUEST)
          token,_ = Token.objects.get_or_create(user=user)
          login(request, user)
          return Response({"Token":token.key, "user":token.user_id}, status= status.HTTP_200_OK)

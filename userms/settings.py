@@ -12,7 +12,7 @@ SECRET_KEY = 'django-insecure-6556%m@j272$#td_3-30!9@63b#txxh-w2qu(^03x!bhf-sjt!
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = []
 
 
 # Email Addresses and data
@@ -41,11 +41,6 @@ INSTALLED_APPS = [
 
     # Third party apps
     "rest_framework.authtoken",
-    "rest_auth",
-    'allauth',
-    'allauth.account',
-    'rest_auth.registration',
-    'allauth.socialaccount',
     "django_filters",
 ]
 
@@ -156,6 +151,7 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         "rest_framework.authentication.TokenAuthentication",
         "rest_framework.authentication.SessionAuthentication",
+        "rest_framework.authentication.BasicAuthentication",
     ],
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 5,
