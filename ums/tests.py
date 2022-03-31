@@ -3,8 +3,6 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APITestCase
-from django.utils.encoding import force_bytes, force_text
-from django.utils.http import urlsafe_base64_encode
 
 from .models import User
 
@@ -289,7 +287,7 @@ class PasswordResetUpdate(APITestCase):
    def test_for_forgot_password_send_mail(self):
       """Forgot your password, enter your mail you will get email to reset password"""
       data = {
-         'email' : "user1@gmail.com",
+         'email' : "user@gmail.com",
       }
       response= self.client.post(reverse("password-reset"), data= data)
       self.assertEqual(response.status_code, status.HTTP_200_OK)
