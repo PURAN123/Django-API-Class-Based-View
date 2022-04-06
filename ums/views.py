@@ -1,6 +1,9 @@
+
 from django.contrib.auth import login, logout
+from django.contrib.auth.models import Group
 from django.contrib.sites.models import Site
 from django.core.mail import EmailMessage
+from django.db.models import Q
 from django.template.loader import render_to_string
 from django.utils.encoding import force_bytes, force_text
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
@@ -10,17 +13,19 @@ from rest_framework.authentication import (SessionAuthentication,
                                            TokenAuthentication)
 from rest_framework.authtoken.models import Token
 from rest_framework.filters import SearchFilter
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated,IsAdminUser
 from rest_framework.response import Response
 from userms import settings
 
-from .models import User
-from .permissions import CustomPermission
+from .models import School, User
+from .permissions import CustomPermission,GroupSchoolPermissions
 from .serializer import (ChangePasswordSeriallizer, CustomLoginTokenSerializer,
-                         Customlogout, ResetNewPasswordSerializer,
+                         Customlogout, GroupSerializer,
+                         ResetNewPasswordSerializer, SchoolSerializer,
                          SendPasswordResetEmailSerializer, UserSerializer,
                          UserUpdateSerializer)
 from .tokens import generate_token
+
 
 class UserView(viewsets.ModelViewSet):
    authentication_classes=[TokenAuthentication,SessionAuthentication]
@@ -166,4 +171,45 @@ class CustomLogoutView(generics.CreateAPIView):
    permission_classes=[IsAuthenticated]
    def create(self,request):
       logout(request)
-      return Response({"logout":"logout successful"})
+      return Response({"logout":"logout successfully"})
+
+class SchoolView(viewsets.ModelViewSet):
+   """
+   Create school
+   Only super user can create school and other user can view it only
+   """
+   serializer_class= SchoolSerializer
+   queryset= School.objects.all()
+   permission_classes=(GroupSchoolPermissions,)
+
+   def create(self,request,*args, **kwargs):
+      serializer= self.get_serializer(data= self.request.data)
+      if serializer.is_valid():
+         s= School.objects.create(name= serializer.data['name'])
+         s.save()
+         return Response({"Done":"Created"},status=status.HTTP_201_CREATED)
+      return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class GroupView(viewsets.ModelViewSet):
+   """Create groups"""
+   serializer_class = GroupSerializer
+   queryset= Group.objects.all()
+   permission_classes=[GroupSchoolPermissions,]
+
+   def create(self,request,*args, **kwargs):
+      serializer= self.get_serializer(data= self.request.data)
+      if serializer.is_valid():
+         s= Group.objects.create(name= serializer.data['name'])
+         s.save()
+         return Response({"Group":"group Created Successfully"},status=status.HTTP_201_CREATED)
+      return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class TeacherListView(generics.ListAPIView):
+   serializer_class=UserSerializer
+   def get_queryset(self):
+      if self.request.user.groups.name=="Coach":
+         return User.objects.filter(Q(school= self.request.user.school.id) & ~Q(groups=self.request.user.groups.id))
+      if self.request.user.groups.name=="Teachers":
+         return User.objects.filter(username= self.request.user.username)
+      else:
+         return User.objects.none()

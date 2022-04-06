@@ -1,3 +1,4 @@
+
 from rest_framework import permissions
 
 
@@ -20,3 +21,23 @@ class CustomPermission(permissions.BasePermission):
          return True
 
       return obj.id == request.user.id
+
+
+class GroupSchoolPermissions(permissions.BasePermission):
+   def has_permission(self, request, view):
+      if request.method == "POST":
+         if not request.user.is_superuser:
+            return False
+         return True
+      if not request.user.is_authenticated:
+         return False
+      return True
+   def has_object_permission(self, request, view, obj):
+      if request.user.is_superuser:
+         return True
+      if request.method == "GET":
+         return True
+      if not request.user.is_authenticated:
+         return False
+      return False
+      

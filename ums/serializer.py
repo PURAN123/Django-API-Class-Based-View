@@ -1,3 +1,5 @@
+
+from django.contrib.auth.models import Group
 from django.contrib.sites.models import Site
 from django.core.mail import EmailMessage
 from django.template.loader import render_to_string
@@ -6,7 +8,7 @@ from django.utils.http import urlsafe_base64_encode
 from rest_framework import serializers
 from userms import settings
 
-from .models import User
+from .models import School, User
 from .tokens import generate_token
 
 
@@ -15,8 +17,7 @@ class UserSerializer(serializers.ModelSerializer):
    password= serializers.CharField(min_length=2,style={"input_type":"password"})
    class Meta:
       model=  User
-      fields= ["id", "username", "email", "phone_number", "dob", "street",
-       "zip_code", "city", "state", "country", "password"]
+      fields= ["id", "username", "email", "phone_number", "dob", "street","zip_code", "city", "state", "country", "password", "school", "groups"]
 
    def create(self, validated_data):
       """ Createa new user and set all fields to the user """
@@ -30,6 +31,8 @@ class UserSerializer(serializers.ModelSerializer):
          zip_code = validated_data['zip_code'],
          country = validated_data['country'],
          state = validated_data['state'],
+         school= validated_data['school'],
+         groups= validated_data['groups']
       )
       user.set_password(validated_data['password'])
       user.is_active=False
@@ -60,7 +63,7 @@ class UserUpdateSerializer(serializers.ModelSerializer):
    class Meta:
       model=  User
       fields= ["id","username","email", "phone_number", "dob", "street",
-      "zip_code", "city", "state", "country","password"]
+      "zip_code", "city", "state", "country","password","groups","school"]
       read_only_fields= ('username', "email",)
 
 class ChangePasswordSeriallizer(serializers.Serializer):
@@ -91,3 +94,13 @@ class CustomLoginTokenSerializer(serializers.Serializer):
 
 class Customlogout(serializers.Serializer):
    model=User
+
+class SchoolSerializer(serializers.ModelSerializer):
+   class Meta:
+      model= School
+      fields= ['name',]
+
+class GroupSerializer(serializers.ModelSerializer):
+   class Meta:
+      model= Group
+      fields=['name']
