@@ -1,15 +1,8 @@
 
 from django.contrib.auth.models import Group
-from django.contrib.sites.models import Site
-from django.core.mail import EmailMessage
-from django.template.loader import render_to_string
-from django.utils.encoding import force_bytes
-from django.utils.http import urlsafe_base64_encode
 from rest_framework import serializers
-from userms import settings
 
 from .models import School, User
-from .tokens import generate_token
 
 
 class SchoolSerializer(serializers.ModelSerializer):

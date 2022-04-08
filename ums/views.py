@@ -1,8 +1,9 @@
 
 from django.contrib.auth import login, logout
+from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import Group
 from django.contrib.sites.models import Site
-from django.core.mail import send_mail,EmailMessage
+from django.core.mail import EmailMessage, send_mail
 from django.template.loader import render_to_string
 from django.utils.encoding import force_bytes, force_text
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
@@ -15,7 +16,6 @@ from rest_framework.filters import SearchFilter
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from userms import settings
-from django.contrib.auth.hashers import make_password
 
 from .models import School, User
 from .permissions import SchoolAndGroupPermissions, UserPermissions
@@ -64,7 +64,7 @@ class UserView(viewsets.ModelViewSet):
       serializer= UserSerializer(data=self.request.data)
       if serializer.is_valid():
          serializer.save(is_active=False,password= make_password(serializer.validated_data['password']))
-         activate_account_mail(serializer.data['email'])
+         activate_account(serializer.data['email'])
          return Response({'Message':"Please check your email to activate your account!"},\
                            status=status.HTTP_201_CREATED)
       return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
@@ -206,7 +206,7 @@ class GroupView(viewsets.ModelViewSet):
    permission_classes=[SchoolAndGroupPermissions,]
 
 
-def activate_account_mail(email):
+def activate_account(email):
    """ Send user an email to activate his account """
    try:
       user= User.objects.get(email= email)
