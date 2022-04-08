@@ -3,7 +3,7 @@ from django.contrib.auth import login, logout
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import Group
 from django.contrib.sites.models import Site
-from django.core.mail import EmailMessage, send_mail
+from django.core.mail import EmailMessage
 from django.template.loader import render_to_string
 from django.utils.encoding import force_bytes, force_text
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
