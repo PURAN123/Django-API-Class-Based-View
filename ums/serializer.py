@@ -123,7 +123,7 @@ class LoginSerializer(serializers.Serializer):
 
 
 class LogoutSerializer(serializers.Serializer):
-   '''logout users serializer'''
+   '''logout user serializer'''
    model=User
 
 

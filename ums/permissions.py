@@ -3,7 +3,7 @@ from rest_framework import permissions
 
 
 
-class CustomPermissionUser(permissions.BasePermission):
+class UserPermissions(permissions.BasePermission):
    """Set the permission that a authenticated user can not make post request and """
    def has_permission(self, request, view):
       if request.method=="POST" and request.user.is_authenticated:
@@ -22,7 +22,7 @@ class CustomPermissionUser(permissions.BasePermission):
 
 
 
-class CustomPermissions(permissions.BasePermission):
+class SchoolAndGroupPermissions(permissions.BasePermission):
    def has_permission(self, request, view):
       """Super user can perform all tasks and authenticate user
        has view permission and unauthenticate user has no any permission"""
