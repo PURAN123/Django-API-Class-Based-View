@@ -115,7 +115,7 @@ class ResetNewPasswordSerializer(serializers.Serializer):
 
 
 class LoginSerializer(serializers.Serializer):
-   """"""
+   """login user serializer """
    model = User
    username= serializers.CharField()
    email=    serializers.EmailField()
@@ -123,6 +123,7 @@ class LoginSerializer(serializers.Serializer):
 
 
 class LogoutSerializer(serializers.Serializer):
+   '''logout users serializer'''
    model=User
 
 

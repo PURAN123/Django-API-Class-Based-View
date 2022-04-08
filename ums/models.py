@@ -20,9 +20,9 @@ class User(AbstractUser):
    state = models.CharField(max_length=100)
    country = models.CharField(max_length=50) 
    password= models.CharField(max_length=200)
-   school = models.ForeignKey(School, on_delete=models.SET_NULL,\
+   school = models.ForeignKey(School, on_delete=models.SET_NULL,
                               blank=True,null=True)
-   groups = models.ForeignKey(Group, on_delete=models.SET_NULL,\
+   groups = models.ForeignKey(Group, on_delete=models.SET_NULL,
                               blank=True,null=True)
 
    def __str__(self):

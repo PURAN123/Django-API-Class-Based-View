@@ -3,7 +3,6 @@ from django.contrib.auth import login, logout
 from django.contrib.auth.models import Group
 from django.contrib.sites.models import Site
 from django.core.mail import EmailMessage
-from django.db.models import Q
 from django.template.loader import render_to_string
 from django.utils.encoding import force_bytes, force_text
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
@@ -19,17 +18,16 @@ from userms import settings
 
 from .models import School, User
 from .permissions import CustomPermissions, CustomPermissionUser
-from .serializer import (ChangePasswordSeriallizer, LoginSerializer,
-                         LogoutSerializer, GroupSerializer,
+from .serializer import (ChangePasswordSeriallizer, GroupSerializer,
+                         LoginSerializer, LogoutSerializer,
                          ResetNewPasswordSerializer, SchoolSerializer,
-                         SendPasswordResetEmailSerializer, UserSerializer,
-                         UserUpdateSerializer,UserListSerializer)
+                         SendPasswordResetEmailSerializer, UserListSerializer,
+                         UserSerializer, UserUpdateSerializer)
 from .tokens import generate_token
 
 
 class UserView(viewsets.ModelViewSet):
-   """User view which will return the user as logged in user permissions"""
-
+   """User view which will return the user as logged in user's permissions"""
    authentication_classes=[TokenAuthentication,SessionAuthentication]
    permission_classes= [CustomPermissionUser]
    filter_backends= [SearchFilter, DjangoFilterBackend]
@@ -50,6 +48,7 @@ class UserView(viewsets.ModelViewSet):
          return User.objects.all()
       
       elif self.request.user.is_authenticated and self.request.user.groups == None:
+         """Authenticate user can see his data"""
          return User.objects.filter(pk=self.request.user.id)
 
       elif self.request.user.groups.name=="Coach":
@@ -73,9 +72,9 @@ class UserView(viewsets.ModelViewSet):
       return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
 
 
+
 class AccountActivatedView(generics.ListAPIView):
    """Send the user a success message"""
-
    def list(self,request,uidb64,token):
       """Show usera success message """
       try:
@@ -89,6 +88,7 @@ class AccountActivatedView(generics.ListAPIView):
          return Response({"Success":"Your account has been activated successfully","Note":"You can login in login portal"},status=status.HTTP_200_OK)
       else:
          return Response({'Oops':"There is some problem to activate your account"})
+
 
 
 class ChangePasswordView(generics.CreateAPIView):
@@ -113,6 +113,7 @@ class ChangePasswordView(generics.CreateAPIView):
       else:
          return Response({"Oops":"Password1 does not match with Password2"},status=status.HTTP_400_BAD_REQUEST)
       return Response(serializer.errors,status=status.HTTP_404_NOT_FOUND)
+
 
 
 class SendResetPasswordEmailView(generics.CreateAPIView):
@@ -145,6 +146,7 @@ class SendResetPasswordEmailView(generics.CreateAPIView):
       return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+
 class ResetPasswordView(generics.CreateAPIView):
    """Check user and token and reset user password"""
    serializer_class = ResetNewPasswordSerializer
@@ -167,6 +169,7 @@ class ResetPasswordView(generics.CreateAPIView):
          return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
 
 
+
 class LoginView(generics.CreateAPIView):
    """Login a user by its username,email and password and return its token and id"""
    serializer_class= LoginSerializer
@@ -187,6 +190,7 @@ class LoginView(generics.CreateAPIView):
       return Response(serializer.errors)
 
 
+
 class LogoutView(generics.CreateAPIView):
    """ Logout user which is already logged in """
    serializer_class= LogoutSerializer
@@ -196,6 +200,7 @@ class LogoutView(generics.CreateAPIView):
       return Response({"logout":"logout successfully"})
 
 
+
 class SchoolView(viewsets.ModelViewSet):
    """School model view"""
    serializer_class= SchoolSerializer
@@ -203,8 +208,9 @@ class SchoolView(viewsets.ModelViewSet):
    permission_classes=[CustomPermissions,]
 
 
+
 class GroupView(viewsets.ModelViewSet):
-   """Group View """
+   """Group model View """
    serializer_class = GroupSerializer
    queryset= Group.objects.all()
    permission_classes=[CustomPermissions]
