@@ -23,7 +23,7 @@ from .serializer import (ChangePasswordSeriallizer, GroupSerializer,
                          LoginSerializer, LogoutSerializer,
                          ResetNewPasswordSerializer, SchoolSerializer,
                          SendPasswordResetEmailSerializer, UserListSerializer,
-                         UserSerializer, UserUpdateSerializer)
+                         UserCreateSerializer, UserUpdateSerializer)
 from .tokens import generate_token
 
 
@@ -38,7 +38,7 @@ class UserView(viewsets.ModelViewSet):
    def get_serializer_class(self):
       """Return specific serializer according to requirement"""
       if self.action== 'create':
-         return UserSerializer
+         return UserCreateSerializer
       if self.action== 'update':
          return UserUpdateSerializer
       return UserListSerializer
@@ -61,7 +61,7 @@ class UserView(viewsets.ModelViewSet):
 
    def create(self, request, *args, **kwargs):
       """Create a new user """
-      serializer= UserSerializer(data=self.request.data)
+      serializer= UserCreateSerializer(data=self.request.data)
       if serializer.is_valid():
          serializer.save(is_active=False,password= make_password(serializer.validated_data['password']))
          activate_account(serializer.data['email'])
@@ -122,21 +122,7 @@ class SendResetPasswordEmailView(generics.CreateAPIView):
          except User.DoesNotExist:
             return Response({"errors":"Provided Email doesn't associate with any User."})
          if user:
-            current_site = Site.objects.get_current()
-            email_subject= "Password reset Mail"
-            message2= render_to_string("pass_reset.html", {
-               "domain": current_site.domain,
-               "uid": urlsafe_base64_encode(force_bytes(user.pk)),
-               "token": generate_token.make_token(user),
-            })
-            email= EmailMessage(
-               email_subject,
-               message2,
-               settings.EMAIL_HOST_USER,
-               [user.email],
-            )
-            email.fail_silently=True
-            email.send()
+            reset_password(serializer.data['email'])
          return Response({"detials":"Email has been sent to your registered email address"},status=status.HTTP_200_OK)
       return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -229,3 +215,25 @@ def activate_account(email):
    email.fail_silently=True
    email.send()
 
+
+def reset_password(email):
+   """ Send user an email to reset his password """
+   try:
+      user= User.objects.get(email= email)
+   except:
+      return 
+   current_site = Site.objects.get_current()
+   email_subject= "Password reset Mail"
+   message2= render_to_string("pass_reset.html", {
+      "domain": current_site.domain,
+      "uid": urlsafe_base64_encode(force_bytes(user.pk)),
+      "token": generate_token.make_token(user),
+   })
+   email= EmailMessage(
+      email_subject,
+      message2,
+      settings.EMAIL_HOST_USER,
+      [user.email],
+   )
+   email.fail_silently=True
+   email.send()

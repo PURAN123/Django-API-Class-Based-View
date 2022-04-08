@@ -25,15 +25,15 @@ class UserListSerializer(serializers.ModelSerializer):
    groups= GroupSerializer()
    class Meta:
       model=  User
-      fields= ["id", "username", "email", "phone_number", "dob", "street","zip_code",\
-          "city", "state", "country", "school", "groups"]
+      fields= [ "id", "username", "email", "phone_number", "dob", "street","zip_code",
+               "city", "state", "country", "school", "groups"]
 
 
-class UserSerializer(serializers.ModelSerializer):
+class UserCreateSerializer(serializers.ModelSerializer):
    """ Create a serializer to the model user """
    class Meta:
       model=  User
-      fields= ["id", "username", "email", "phone_number", "dob", "street",\
+      fields= ["id", "username", "email", "phone_number", "dob", "street",
                "zip_code","city","state", "country","password", "school", "groups"]
 
 
@@ -41,8 +41,8 @@ class UserUpdateSerializer(serializers.ModelSerializer):
    """ Create a serializer to the model user while update """
    class Meta:
       model=  User
-      fields= ["id","username","email", "phone_number", "dob", "street",
-      "zip_code", "city", "state", "country","groups","school"]
+      fields= [ "id","username","email", "phone_number", "dob", "street",
+                  "zip_code", "city", "state", "country","groups","school"]
       read_only_fields= ('username', "email",'password')
 
 
@@ -80,5 +80,3 @@ class LoginSerializer(serializers.Serializer):
 class LogoutSerializer(serializers.Serializer):
    '''logout user serializer'''
    model=User
-
-
