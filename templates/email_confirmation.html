@@ -1,6 +1,6 @@
 {% autoescape off %}
 welcome to UMS
-Hello 
+Hello {{ name }}
 
 please Confirm your Email by clicking the link below
 confirmation_link : http://{{ domain }}{% url "success" uidb64=uid token=token %}

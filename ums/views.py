@@ -2,7 +2,7 @@
 from django.contrib.auth import login, logout
 from django.contrib.auth.models import Group
 from django.contrib.sites.models import Site
-from django.core.mail import EmailMessage
+from django.core.mail import send_mail,EmailMessage
 from django.template.loader import render_to_string
 from django.utils.encoding import force_bytes, force_text
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
@@ -15,6 +15,7 @@ from rest_framework.filters import SearchFilter
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from userms import settings
+from django.contrib.auth.hashers import make_password
 
 from .models import School, User
 from .permissions import SchoolAndGroupPermissions, UserPermissions
@@ -33,8 +34,9 @@ class UserView(viewsets.ModelViewSet):
    filter_backends= [SearchFilter, DjangoFilterBackend]
    filterset_fields=["id","email","username"]
    search_fields=["first_name","last_name"]
+
    def get_serializer_class(self):
-      """Reeturn specific serializer according to requirement"""
+      """Return specific serializer according to requirement"""
       if self.action== 'create':
          return UserSerializer
       if self.action== 'update':
@@ -59,11 +61,12 @@ class UserView(viewsets.ModelViewSet):
 
    def create(self, request, *args, **kwargs):
       """Create a new user """
-      data = self.request.data
-      serializer= UserSerializer(data=data)
+      serializer= UserSerializer(data=self.request.data)
       if serializer.is_valid():
-         serializer.save()
-         return Response({'Message':"Please check your email to activate your account!"},status=status.HTTP_201_CREATED)
+         serializer.save(is_active=False,password= make_password(serializer.validated_data['password']))
+         activate_account_mail(serializer.data['email'])
+         return Response({'Message':"Please check your email to activate your account!"},\
+                           status=status.HTTP_201_CREATED)
       return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -202,4 +205,27 @@ class GroupView(viewsets.ModelViewSet):
    queryset= Group.objects.all()
    permission_classes=[SchoolAndGroupPermissions,]
 
+
+def activate_account_mail(email):
+   """ Send user an email to activate his account """
+   try:
+      user= User.objects.get(email= email)
+   except:
+      return 
+   current_site = Site.objects.get_current()
+   email_subject= "Confirm your Email"
+   message= render_to_string("email_confirmation.html", {
+      "name": user.username,
+      "domain": current_site.domain,
+      "uid": urlsafe_base64_encode(force_bytes(user.id)),
+      "token": generate_token.make_token(user),
+   })
+   email= EmailMessage(
+      email_subject,
+      message,
+      settings.EMAIL_HOST_USER,
+      [user.email],
+   )
+   email.fail_silently=True
+   email.send()
 

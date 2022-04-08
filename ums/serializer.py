@@ -33,7 +33,7 @@ class UserListSerializer(serializers.ModelSerializer):
    class Meta:
       model=  User
       fields= ["id", "username", "email", "phone_number", "dob", "street","zip_code",\
-          "city", "state", "country", "password", "school", "groups"]
+          "city", "state", "country", "school", "groups"]
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -42,44 +42,6 @@ class UserSerializer(serializers.ModelSerializer):
       model=  User
       fields= ["id", "username", "email", "phone_number", "dob", "street",\
                "zip_code","city","state", "country","password", "school", "groups"]
-
-   def create(self, validated_data):
-      """ Create a new user and set all fields to the user """
-      user= User.objects.create(
-         username = validated_data['username'],
-         email = validated_data['email'],
-         phone_number = validated_data['phone_number'],
-         city = validated_data['city'],
-         street = validated_data['street'],
-         dob = validated_data['dob'],
-         zip_code = validated_data['zip_code'],
-         country = validated_data['country'],
-         state = validated_data['state'],
-         school= validated_data['school'],
-         groups= validated_data['groups'],
-      )
-      user.set_password(validated_data['password'])
-      user.is_active=False
-      user.save()
-
-      """ Send user a  mail to activate his account"""
-      current_site = Site.objects.get_current()
-      email_subject= "Confirm your Email"
-      message2= render_to_string("email_confirmation.html", {
-         "name": user.username,
-         "domain": current_site.domain,
-         "uid": urlsafe_base64_encode(force_bytes(user.pk)),
-         "token": generate_token.make_token(user),
-      })
-      email= EmailMessage(
-         email_subject,
-         message2,
-         settings.EMAIL_HOST_USER,
-         [user.email],
-      )
-      email.fail_silently=True
-      email.send()
-      return user
 
 
 class UserUpdateSerializer(serializers.ModelSerializer):

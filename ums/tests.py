@@ -77,7 +77,6 @@ class SetupClass(APITestCase):
       }
 
 
-
 class CreateUserTestCases(SetupClass):
    """ Register users test cases for all types of user """
    def test_register_anonymous_user(self):
@@ -113,7 +112,6 @@ class CreateUserTestCases(SetupClass):
       response = self.client.post(reverse("users-list"), data=self.create_user_data)
       self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
    
-
 
 class UpdateUserTestCases(SetupClass):
    """ Update the user detail """
@@ -188,7 +186,6 @@ class UpdateUserTestCases(SetupClass):
       self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
 
-
 class ListUserDetailTestCases(SetupClass):
    """ List the indivisual user """
 
@@ -252,7 +249,6 @@ class ListUserDetailTestCases(SetupClass):
       self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
       response= self.client.get(reverse("users-detail", kwargs={'pk':self.authenticate_user.id}))
       self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-
 
 
 class DeleteUserTestCases(SetupClass):
@@ -329,7 +325,6 @@ class DeleteUserTestCases(SetupClass):
       self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
 
-
 class ListUserTestCases(SetupClass):
    """ Show users list """
 
@@ -367,7 +362,6 @@ class ListUserTestCases(SetupClass):
          self.assertEqual(response.status_code, status.HTTP_200_OK)
 
 
-
 class CreateGroupTestCases(SetupClass):
    """Create group test cases"""
 
@@ -403,7 +397,6 @@ class CreateGroupTestCases(SetupClass):
       self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
       response = self.client.post(reverse("group-list"),data= {'name':'name'})
       self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-
 
 
 class UpdateGroupTestCases(SetupClass):
@@ -448,7 +441,6 @@ class UpdateGroupTestCases(SetupClass):
       self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
 
-
 class ListGroupDetailTestCases(SetupClass):
    """Ctest cases for specific group """
    def test_specific_group_list_for_superuser(self):
@@ -485,7 +477,6 @@ class ListGroupDetailTestCases(SetupClass):
       self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
 
-
 class DeleteGroupTestCases(SetupClass):
    """delete groups test cases"""
    def test_group_delete_for_superuser(self):
@@ -520,7 +511,6 @@ class DeleteGroupTestCases(SetupClass):
       """Anonymous user can not delete group """
       response = self.client.delete(reverse("group-detail",kwargs={"pk":self.teacher_group.id}))
       self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-
 
 
 class ListGroupTestCases(SetupClass):
@@ -560,7 +550,6 @@ class ListGroupTestCases(SetupClass):
       self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
 
-
 class CreateSchoolTestCases(SetupClass):
    """Create schools test cases"""
 
@@ -596,7 +585,6 @@ class CreateSchoolTestCases(SetupClass):
       self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
       response = self.client.post(reverse("school-list"),data= {'name':'name'})
       self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-
 
 
 class UpdateSchoolTestCases(SetupClass):
@@ -641,7 +629,6 @@ class UpdateSchoolTestCases(SetupClass):
       self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
 
-
 class ListSchoolDetailTestCases(SetupClass):
    """list specific school test cases"""
    
@@ -677,7 +664,6 @@ class ListSchoolDetailTestCases(SetupClass):
       self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
       response = self.client.get(reverse("school-detail",kwargs={"pk":self.school.id}))
       self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-
 
 
 class DeleteSchoolTestCases(SetupClass):
@@ -753,7 +739,6 @@ class ListSchoolTestCases(SetupClass):
       self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
 
-
 class UserLoginTestCase(SetupClass):
    """ Login tests """
 
@@ -789,7 +774,6 @@ class UserLoginTestCase(SetupClass):
       self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
       response = self.client.post(reverse('login'),data=self.login_data)
       self.assertEqual(response.status_code, status.HTTP_200_OK)
-
 
 
 class UserLogoutTestCase(SetupClass):
@@ -829,7 +813,6 @@ class UserLogoutTestCase(SetupClass):
       self.assertEqual(response.status_code, status.HTTP_200_OK)
 
 
-
 class ChangePasswordTestCases(SetupClass):
    """Change password with old password"""
    def test_change_password_superuser(self):
@@ -864,7 +847,6 @@ class ChangePasswordTestCases(SetupClass):
       """Change your password but you should have your old password"""
       response= self.client.post(reverse("change-password"), data= self.change_password_data)
       self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-
 
 
 class PasswordResetSendMailTestCases(SetupClass):
@@ -902,4 +884,3 @@ class PasswordResetSendMailTestCases(SetupClass):
       """Forgot your password, enter your mail you will get email to reset password"""
       response= self.client.post(reverse("reset-password"), data= {'email' : "user@gmail.com"})
       self.assertEqual(response.status_code, status.HTTP_200_OK)
-
