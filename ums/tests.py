@@ -1,441 +1,1348 @@
 
+from django.contrib.auth.models import Group
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APITestCase
-from .models import User
 
-# class CustomUnAuthorizeTestCase(APITestCase):
-#    """
-#    All test cases for the un-authenticated user
-#    """
-#    def setUp(self):
-#       """
-#       Create users to test your code
-#       """
-#       self.user1 = User.objects.create_user( username= "test",
-#          email= "test.test.1002.2001@gmail.com",
-#          phone_number= "01231231230",
-#          dob= "2022-03-02",
-#          street= "231",
-#          zip_code= 246285,
-#          city= "Banglore",
-#          state= "Karnataka",
-#          country= "India",
-#          password= "password"
-#       )
-#       self.user2 = User.objects.create_user( username= "test1",
-#          email= "test.test.1002.20@gmail.com",
-#          phone_number= "01231231000",
-#          dob= "2022-03-02",
-#          street= "231",
-#          zip_code= 246285,
-#          city= "Banglore",
-#          state= "Karnataka",
-#          country= "India",
-#          password= "password",
-#       )
-
-#    def test_post_unauthnticated_user(self):
-#       """The user can only post the data for registration """ 
-#       data = {"username": "test2", "email": "test.test.2001.1002@gmail.com", "phone_number":"20202020",
-#       "dob": "2001-03-03", "street": "232", "zip_code": 246268,"city": "Banglore", "state": "Karnataka",
-#       "country": "India", "password": "password"
-#       }
-#       response = self.client.post(reverse("users-list"), data=data)
-#       self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-
-#    def test_unauthnticated_view_user(self):
-#       """The user has not permissions to view details of user"""
-#       response = self.client.get(reverse("users-detail",kwargs={"pk":self.user1.id}))
-#       self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-
-#    def test_unauthnticated_update_details(self):
-#       """The user has not permissions to update details of user"""
-#       data = {"zip_code": 246268, "city": "Washington", "state": "California", "country": "Amerika"}
-#       response= self.client.put(reverse("users-detail", kwargs={'pk':self.user1.id}),data=data)
-#       self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-
-#    def test_unauthnticated_delete_user(self):
-#       """The user has not permissions to delete the user"""
-#       url = reverse("users-detail",kwargs={"pk": self.user1.pk})
-#       response =  self.client.delete(url)
-#       self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+from ums.models import School, User
 
 
-
-# class AuthenticatedUserTestCase(APITestCase):
-#    def setUp(self):
-#       self.user1 = User.objects.create_user( username= "test",
-#          email= "test.test.1002.2001@gmail.com",
-#          phone_number= "01231231230",
-#          dob= "2022-03-02",
-#          street= "231",
-#          zip_code= 246285,
-#          city= "Banglore",
-#          state= "Karnataka",
-#          country= "India",
-#          password= "password"
-#       )
-#       self.user2 = User.objects.create_user( username= "test1",
-#          email= "test.test.1002.20@gmail.com",
-#          phone_number= "01231231000",
-#          dob= "2022-03-02",
-#          street= "231",
-#          zip_code= 246285,
-#          city= "Banglore",
-#          state= "Karnataka",
-#          country= "India",
-#          password= "password"
-#       )   
-#    def test_authenticated_post_user(self):
-#       """The authenticated user has not permissions to post details for registration"""
-#       token = Token.objects.create(user = self.user1)
-#       self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
-#       data = {"username": "test2", "email": "test.test.2001.1002@gmail.com", "phone_number":"20202020",
-#       "dob": "2001-3-3", "street": "232", "zip_code": 246268,"city": "Banglore", "state": "Karnataka",
-#       "country": "India", "password": "password"
-#       }
-#       response = self.client.post(reverse("users-list"), data=data, format="json")
-#       self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-
-#    def test_authenticated_get_own_details(self):
-#       """Authenticated user can get its own data only"""
-#       token = Token.objects.create(user = self.user1)
-#       self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
-#       response = self.client.get(reverse("users-detail",kwargs={"pk":self.user1.id}))
-#       self.assertEqual(response.status_code, status.HTTP_200_OK)
-#    def test_authenticated_get_other_user_details(self):
-#       """Authenticated user can not get other user data"""
-#       token = Token.objects.create(user = self.user1)
-#       self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
-#       response = self.client.get(reverse("users-detail",kwargs={"pk":self.user2.id}))
-#       self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-
-#    def test_authenticated_update_own_data(self):
-#       """ The user has permissions to update details of own"""
-#       token = Token.objects.create(user = self.user1)
-#       self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
-#       data = {"username": "test2", "email": "test.test.2001.1002@gmail.com", "phone_number":"20202020",
-#       "dob": "2001-3-3", "street": "232", "zip_code": 246268,"city": "Banglore", "state": "Karnataka",
-#       "country": "India", "password": "password"
-#       }
-#       response= self.client.put(reverse("users-detail", kwargs={'pk':self.user1.id}),data=data)
-#       self.assertEqual(response.status_code, status.HTTP_200_OK)
-#    def test_authenticated_update_other_user_data(self):
-#       """ The user has not permissions to update details of other user"""
-#       token = Token.objects.create(user = self.user1)
-#       self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
-#       data = {"username": "test2", "email": "test.test.2001.1002@gmail.com", "phone_number":"20202020",
-#       "dob": "2001-3-3", "street": "232", "zip_code": 246268,"city": "Banglore", "state": "Karnataka",
-#       "country": "India", "password": "password"
-#       }
-#       response= self.client.put(reverse("users-detail", kwargs={'pk':self.user2.id}),data=data)
-#       self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-   
-#    def test_authenticated_delete_own_user(self):
-#       """Authenticated user can delete its own data only not other user data"""
-#       token = Token.objects.create(user = self.user1)
-#       self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
-#       url = reverse("users-detail",kwargs={"pk": self.user1.pk})
-#       response =  self.client.delete(url)
-#       self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-#    def test_authenticated_delete_other_user(self):
-#       """
-#       Authenticated user can delete its own data only not other user data
-#       """
-#       token = Token.objects.create(user = self.user1)
-#       self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
-#       url = reverse("users-detail",kwargs={"pk": self.user2.pk})
-#       response =  self.client.delete(url)
-#       self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-
-
-# class SuperUserTestCase(APITestCase):
-#    """
-#    Test conditions for super user
-#    """
-#    def setUp(self):
-#       self.superuser = User.objects.create_superuser( username= "test",
-#          email= "test.test.1002.2001@gmail.com",
-#          phone_number= "01231231230",
-#          dob= "2022-03-02",
-#          street= "231",
-#          zip_code= 246285,
-#          city= "Banglore",
-#          state= "Karnataka",
-#          country= "India",
-#          password= "password"
-#       )
-#       self.user2 = User.objects.create_user( username= "test1",
-#          email= "test.test.1002.20@gmail.com",
-#          phone_number= "01231231000",
-#          dob= "2022-03-02",
-#          street= "231",
-#          zip_code= 246285,
-#          city= "Banglore",
-#          state= "Karnataka",
-#          country= "India",
-#          password= "password"
-#       )   
-#    def test_superuser_for_post_user(self):
-#       """Super user can not post any data for registrations"""
-#       token = Token.objects.create(user = self.superuser)
-#       self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
-#       data = {"username": "test2", "email": "test.test.2001.1002@gmail.com", "phone_number":"20202020",
-#       "dob": "2001-3-3", "street": "232", "zip_code": 246268,"city": "Banglore", "state": "Karnataka",
-#       "country": "India", "password": "password"
-#       }
-#       response = self.client.post(reverse("users-list"), data=data, format="json")
-#       self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-
-#    def test_superuser_for_get_user_data(self):
-#       """Super user can access every user data"""
-#       token = Token.objects.create(user = self.superuser)
-#       self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
-#       response = self.client.get(reverse("users-detail",kwargs={"pk":self.user2.id}))
-#       self.assertEqual(response.status_code, status.HTTP_200_OK)
-#    def test_superuser_for_get_superuser_data(self):
-#       """Super user can access own data"""
-#       token = Token.objects.create(user = self.superuser)
-#       self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
-#       response = self.client.get(reverse("users-detail",kwargs={"pk":self.superuser.id}))
-#       self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-#    def test_superuser_for_update_user_data(self):
-#       """Super user can update every user data"""
-#       token = Token.objects.create(user = self.superuser)
-#       self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
-#       data = {"username": "test2", "email": "test.test.2001.1002@gmail.com", "phone_number":"20202020",
-#       "dob": "2001-3-3", "street": "232", "zip_code": 246268,"city": "Banglore", "state": "Karnataka",
-#       "country": "India", "password": "password"
-#       }
-#       response= self.client.put(reverse("users-detail", kwargs={'pk':self.user2.id}),data=data)
-#       self.assertEqual(response.status_code, status.HTTP_200_OK)
-#    def test_superuser_for_update_own_data(self):
-#       """Super user can update own data"""
-#       token = Token.objects.create(user = self.superuser)
-#       self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
-#       data = {"username": "test2", "email": "test.test.2001.1002@gmail.com", "phone_number":"20202020",
-#          "dob":"2001-3-3", "street": "232", "zip_code": 246268,"city": "Banglore",
-#          "state": "Karnataka", "country": "India", "password": "password"
-#       }
-#       response= self.client.put(reverse("users-detail", kwargs={'pk':self.superuser.id}),data=data)
-#       self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-#    def test_superuser_for_delete_user_data(self):
-#       """Super user can delete every user data"""
-#       token = Token.objects.create(user = self.superuser)
-#       self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
-#       url = reverse("users-detail",kwargs={"pk": self.user2.pk})
-#       response =  self.client.delete(url)
-#       self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-#    def test_superuser_for_delete_superuser_data(self):
-#       """Super user can delete own data"""
-#       token = Token.objects.create(user = self.superuser)
-#       self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
-#       url = reverse("users-detail",kwargs={"pk": self.superuser.pk})
-#       response =  self.client.delete(url)
-#       self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-
-
-# class LoginApiCustomize(APITestCase):
-#    """log in user"""
-#    def setUp(self):
-#       self.user1 = User.objects.create_user( username= "test",
-#          email= "user1@gmail.com",
-#          phone_number= "01231231230",
-#          dob= "2022-03-02",
-#          street= "231",
-#          zip_code= 246285,
-#          city= "Banglore",
-#          state= "Karnataka",
-#          country= "India",
-#          password= "password"
-#       )
-
-#    def test_login_user_page(self):
-#       data = {
-#          "username" : "test",
-#          'email' : "test.test.1002.2001@gmail.com",
-#          'password' : "password"
-#       }
-#       response= self.client.post(reverse("rest_login"), data= data)
-#       self.assertEqual(response.status_code, status.HTTP_200_OK)
-   
-#    def test_logout_user_page(self):
-#       response= self.client.post(reverse("rest_logout"), data= {})
-#       self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-
-# class PasswordResetUpdate(APITestCase):
-#    """Password related tasks"""
-#    def setUp(self):
-#       self.user1 = User.objects.create_user( username= "test",
-#          email= "test.test.1002.2001@gmail.com",
-#          phone_number= "01231231230",
-#          dob= "2022-03-02",
-#          street= "231",
-#          zip_code= 246285,
-#          city= "Banglore",
-#          state= "Karnataka",
-#          country= "India",
-#          password= "password"
-#       )
-
-#    def test_for_forgot_password_send_mail(self):
-#       """Forgot your password, enter your mail you will get email to reset password"""
-#       data = {
-#          'email' : "user@gmail.com",
-#       }
-#       response= self.client.post(reverse("reset-password"), data= data)
-#       self.assertEqual(response.status_code, status.HTTP_200_OK)
-   
-#    def test_for_change_password(self):
-#       """Change your password but you should have your old password"""
-#       data = {
-#          "old_password":"password",
-#          "password1":"change",
-#          "password2":"change"
-#       }
-#       token = Token.objects.create(user = self.user1)
-#       self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
-#       response= self.client.post(reverse("change-password"), data= data)
-#       self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-# class LoginLogoutTestCase(APITestCase):
-#    def setUp(self):
-#       self.user1 = User.objects.create_user(
-#          username= "test",
-#          email= "test.test.1002.2001@gmail.com",
-#          phone_number= "01231231230",
-#          dob= "2022-03-02",
-#          street= "231",
-#          zip_code= 246285,
-#          city= "Banglore",
-#          state= "Karnataka",
-#          country= "India",
-#          password= "password"
-#       )
-
-#    def test_user_login_view(self):
-#       data= {
-#          'username':'test',
-#          'email':"test.test@gmail.com",
-#          'password':'password'
-#       }
-#       response = self.client.post(reverse('login'),data=data)
-#       self.assertEqual(response.status_code, status.HTTP_200_OK)
-#    def test_user_logout_view(self):
-#       token= Token.objects.create(user=self.user1)
-#       self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
-#       response = self.client.post(reverse('logout'),data={})
-#       self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-class GroupTestCasesForAllUsers(APITestCase):
+class CreateUserTestCases(APITestCase):
+   """ Register users test cases for all types of user """
    def setUp(self):
-      self.superuser = User.objects.create_superuser( username= "test",
-         email= "test.test.1002.2001@gmail.com",
-         phone_number= "01231231230",
-         dob= "2022-03-02",
-         street= "231",
-         zip_code= 246285,
-         city= "Banglore",
-         state= "Karnataka",
-         country= "India",
-         password= "password",
+      self.teacher_group = Group.objects.create(
+         name= "Teacher"
       )
-      self.user1 = User.objects.create_user( username= "test1",
-         email= "test.test.1002.20@gmail.com",
-         phone_number= "01231231000",
-         dob= "2022-03-02",
-         street= "231",
-         zip_code= 246285,
-         city= "Banglore",
-         state= "Karnataka",
-         country= "India",
-         password= "password",
-      ) 
+      self.coach_group = Group.objects.create(
+         name= "Coach"
+      )
+      self.school = School.objects.create( 
+         name= "Primary" 
+      )
+      self.teacher_user = User.objects.create_user( 
+         username= "test",email= "test.test.1002.2001@gmail.com",
+         phone_number=   "01231231230",dob= "2022-03-02",street= "231",
+         zip_code= 246285,city= "Banglore",state= "Karnataka",country= "India",
+         password= "password",school= self.school, groups= self.teacher_group
+      )
+      self.coach_user = User.objects.create_user( 
+         username= "test1",email= "test1@gmail.com",
+         phone_number=   "01231231",dob= "2022-03-02",street= "231",
+         zip_code= 246285,city= "Banglore",state= "Karnataka",country= "India",
+         password= "password",school= self.school, groups= self.coach_group
+      )
+      self.authenticate_user = User.objects.create_user( 
+         username= "test2",email= "test2@gmail.com",
+         phone_number=   "0123131",dob= "2022-03-02",street= "231",
+         zip_code= 246285,city= "Banglore",state= "Karnataka",country= "India",
+         password= "password"
+      )
+      self.superuser = User.objects.create_superuser( 
+         username= "super",email= "test.test.1002.200@gmail.com",
+         phone_number= "0123123123", dob= "2022-03-02", street= "231", 
+         zip_code= 246285, city= "Banglore", state= "Karnataka",
+         country= "India", password= "password",school= self.school, groups= self.coach_group
+      )
 
-   def test_group_post_for_superuser(self):
-      token = Token.objects.create(user = self.superuser)
-      self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
-      response = self.client.post(reverse("group-list"),data= {'name':'name'})
+   def test_register_anonymous_user(self):
+      """The anonymous user can post the data for registration """ 
+      data = {"username": "test3", "email": "test.test.2001.1002@gmail.com", "phone_number":"20202020",
+               "dob": "2001-03-03", "street": "232", "zip_code": 246268,"city": "Banglore", "state": "Karnataka",
+               "country": "India", "password": "password",'school':self.school.id,"groups":self.teacher_group.id
+      }
+      response = self.client.post(reverse("users-list"), data=data)
       self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-   def test_group_get_for_superuser(self):
+
+   def test_register_user_by_authnticated_user(self):
+      """The authenticated user has no permissions to post details for registration"""
+      token = Token.objects.create(user = self.authenticate_user)
+      self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
+      data = {"username": "test2", "email": "test.test.2001.1002@gmail.com", "phone_number":"20202020",
+               "dob": "2001-3-3", "street": "232", "zip_code": 246268,"city": "Banglore",
+               "state": "Karnataka", "country": "India", "password": "password",'school':self.school.id,"groups":self.teacher_group.id
+      }
+      response = self.client.post(reverse("users-list"), data=data, format="json")
+      self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+   
+   def test_register_user_by_super_user(self):
+      """Super user can not post any data for registrations"""
       token = Token.objects.create(user = self.superuser)
       self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
-      response = self.client.get(reverse("group-list"))
+      data = {"username": "test2", "email": "test.test.2001.1002@gmail.com", "phone_number":"20202020",
+               "dob": "2001-3-3", "street": "232", "zip_code": 246268,"city": "Banglore",
+               "state": "Karnataka","country": "India", "password": "password",'school':self.school.id,"groups":self.teacher_group.id
+      }
+      response = self.client.post(reverse("users-list"), data=data, format="json")
+      self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+   def test_register_user_by_coach_user(self):
+      """The coach user can not post an user"""
+      token = Token.objects.create(user = self.coach_user)
+      self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
+      data = {"username": "test2", "email": "test.test.2001.1002@gmail.com", "phone_number":"20202020",
+               "dob": "2001-3-3", "street": "232", "zip_code": 246268,"city": "Banglore",
+               "state": "Karnataka", "country": "India", "password": "password",'school':self.school.id,"groups":self.coach_group.id
+      }
+      response = self.client.post(reverse("users-list"), data=data, format="json")
+      self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+   def test_register_user_by_teacher_user(self):
+      """The teacher user can not post an user"""
+      token = Token.objects.create(user = self.teacher_user)
+      self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
+      data = {"username": "test2", "email": "test.test.2001.1002@gmail.com", "phone_number":"20202020",
+               "dob": "2001-3-3", "street": "232", "zip_code": 246268,"city": "Banglore",
+               "state": "Karnataka", "country": "India", "password": "password",'school':self.school.id,"groups":self.teacher_group.id
+      }
+      response = self.client.post(reverse("users-list"), data=data, format="json")
+      self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+   
+
+class UpdateUserTestCases(APITestCase):
+   def setUp(self):
+      """ Update users to test your code """
+      self.teacher_group = Group.objects.create(
+         name= "Teacher"
+      )
+      self.coach_group = Group.objects.create(
+         name= "Coach"
+      )
+      self.school = School.objects.create( 
+         name= "Primary" 
+      )
+      self.teacher_user = User.objects.create_user(
+         username= "test",email= "test.test.1002.2001@gmail.com",
+         phone_number=   "01231231230",dob= "2022-03-02",street= "231",
+         zip_code= 246285,city= "Banglore",state= "Karnataka",
+         country= "India",password= "password",school=self.school,groups=self.teacher_group
+      )
+      self.coach_user = User.objects.create_user( 
+         username= "test1",  email= "test.test.1002.20@gmail.com",
+         phone_number= "01231231000", dob= "2022-03-02", street= "231",
+         zip_code= 246285, city= "Banglore", state= "Karnataka",
+         country= "India", password= "password",school=self.school,groups=self.coach_group
+      )
+      self.authenticate_user = User.objects.create_user( 
+         username= "test2",email= "test2@gmail.com",
+         phone_number=   "0123131",dob= "2022-03-02",street= "231",
+         zip_code= 246285,city= "Banglore",state= "Karnataka",country= "India",
+         password= "password"
+      )
+      self.superuser = User.objects.create_superuser( 
+         username= "super",email= "test.test.1002.200@gmail.com",
+         phone_number= "0123123123", dob= "2022-03-02", street= "231",
+         zip_code= 246285, city= "Banglore", state= "Karnataka",
+         country= "India", password= "password",school=self.school,groups=self.coach_group
+      )
+
+   def test_update_user_details_by_anonymous_user(self):
+      """The anonymous user has no permissions to update details of user"""
+      data = {
+         "username": "test","email": "test.test.1002.2001@gmail.com",
+         "phone_number":   "01231231230","dob": "2022-03-02","street": "231",
+         "zip_code": 246285,"city": "Banglore","state":"Karnataka",
+         "country":"India","password": "password","school":self.school,"groups":self.coach_group.id
+      }
+      response= self.client.put(reverse("users-detail", kwargs={'pk':self.teacher_user.id}),data=data)
+      self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+   def test_update_user_details_of_self_by_authenticate(self):
+      """ The user has permissions to update his own details"""
+      data = {
+         "username": "test", "email": "test.test.1002.2001@gmail.com", "phone_number":"20202020",
+         "dob": "2001-5-3", "street": "56", "zip_code": 246268,"city": "Banglore", "state": "Karnataka",
+         "country": "India", "password": "password","school":self.school.id,"groups":self.teacher_group.id
+      }
+      token = Token.objects.create(user = self.authenticate_user)
+      self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
+      response= self.client.put(reverse("users-detail", kwargs={'pk':self.authenticate_user.id}),data=data,format='json')
       self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-   def test_group_post_case_for_authenticate(self):
-      token = Token.objects.create(user = self.user1)
+   def test_update_user_details_by_other_user(self):
+      """ The user has not permissions to update details of other user"""
+      token = Token.objects.create(user = self.teacher_user)
+      self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
+      data = {
+         "username": "test2", "email": "test.test.2001.1002@gmail.com", "phone_number":"20202020",
+         "dob": "2001-3-3", "street": "232", "zip_code": 246268,"city": "Banglore", "state": "Karnataka",
+         "country": "India", "password": "password",'school':self.school.id,"groups":self.teacher_group.id
+      }
+      response= self.client.put(reverse("users-detail", kwargs={'pk':self.coach_user.id}),data=data)
+      self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+   def test_update_user_details_by_superuser(self):
+      """Super user can update every user data"""
+      token = Token.objects.create(user = self.superuser)
+      self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
+      data = {
+         "username": "test2", "email": "test.test.2001.1002@gmail.com", "phone_number":"20202020",
+         "dob": "2001-3-3", "street": "232", "zip_code": 246268,"city": "Banglore", "state": "Karnataka",
+         "country": "India", "password": "password",'school':self.school.id,"groups":self.teacher_group.id
+      }
+      response= self.client.put(reverse("users-detail", kwargs={'pk':self.coach_user.id}),data=data)
+      self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+   def test_update_superuser_details_by_superuser(self):
+      """Super user can update own data"""
+      token = Token.objects.create(user = self.superuser)
+      self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
+      data = {
+         "username": "test2", "email": "test.test.2001.1002@gmail.com", "phone_number":"20202020",
+         "dob":"2001-3-3", "street": "232", "zip_code": 246268,"city": "Banglore",
+         "state": "Karnataka", "country": "India", "password": "password",'school':self.school.id,"groups":self.coach_group.id
+      }
+      response= self.client.put(reverse("users-detail", kwargs={'pk':self.superuser.id}),data=data)
+      self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+   def test_update_user_details_by_coachuser_self(self):
+      """ The coach user has permissions to update details of own"""
+      token = Token.objects.create(user = self.coach_user)
+      self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
+      data = {
+         "username": "test2", "email": "test.test.2001.1002@gmail.com", "phone_number":"20202020",
+         "dob": "2001-3-3", "street": "232", "zip_code": 246268,"city": "Banglore", "state": "Karnataka",
+         "country": "India", "password": "password",'school':self.school.id,"groups":self.teacher_group.id
+      }
+      response= self.client.put(reverse("users-detail", kwargs={'pk':self.coach_user.id}),data=data)
+      self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+   def test_update_user_details_by_coachuser_of_other_user(self):
+      """ The coach user has not permissions to update details of other user"""
+      token = Token.objects.create(user = self.coach_user)
+      self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
+      data = {
+         "username": "test2", "email": "test.test.2001.1002@gmail.com", "phone_number":"20202020",
+         "dob": "2001-3-3", "street": "232", "zip_code": 246268,"city": "Banglore", "state": "Karnataka",
+         "country": "India", "password": "password",'school':self.school.id,"groups":self.teacher_group.id
+      }
+      response= self.client.put(reverse("users-detail", kwargs={'pk':self.teacher_user.id}),data=data)
+      self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+
+   def test_update_user_details_by_teacheruser_of_self(self):
+      """ The Teacher user has permissions to update details of own"""
+      token = Token.objects.create(user = self.teacher_user)
+      self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
+      data = {
+         "username": "test2", "email": "test.test.2001.1002@gmail.com", "phone_number":"20202020",
+         "dob": "2001-3-3", "street": "232", "zip_code": 246268,"city": "Banglore", "state": "Karnataka",
+         "country": "India", "password": "password",'school':self.school.id,"groups":self.teacher_group.id
+      }
+      response= self.client.put(reverse("users-detail", kwargs={'pk':self.teacher_user.id}),data=data)
+      self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+   def test_update_user_details_by_teacher_of_other_user(self):
+      """ The teacher user has not permissions to update details of other user"""
+      data = {
+         "username": "test2", "email": "test.test.1002.20@gmail.com", "phone_number":"01231231000",
+         "dob": "2001-3-3", "street": "232", "zip_code": 246268,"city": "Banglore", "state": "Karnataka",
+         "country": "India", "password": "password",'school':self.school.id,"groups":self.teacher_group.id
+      }
+      token = Token.objects.create(user = self.teacher_user)
+      self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
+      response= self.client.put(reverse("users-detail", kwargs={'pk':self.authenticate_user.id}),data=data)
+      self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+
+class DeleteUserTestCases(APITestCase):
+   def setUp(self):
+      """ Update users to test your code """
+      self.teacher_group = Group.objects.create(
+         name= "Teacher"
+      )
+      self.coach_group = Group.objects.create(
+         name= "Coach"
+      )
+      self.school = School.objects.create( 
+         name= "Primary" 
+      )
+      self.teacher_user = User.objects.create_user(
+         username= "test",email= "test.test.1002.2001@gmail.com",
+         phone_number= "01231231230",dob= "2022-03-02",street= "231",
+         zip_code= 246285,city= "Banglore",state= "Karnataka",country= "India",
+         password= "password",school=self.school, groups=self.teacher_group
+      )
+      self.coach_user = User.objects.create_user( 
+         username= "test1",  email= "test.test.2001@gmail.com",
+         phone_number= "01231231000", dob= "2022-03-02", street= "231",
+         zip_code= 246285, city= "Banglore", state= "Karnataka",
+         country= "India", password= "password",school=self.school,groups=self.coach_group
+      )
+      self.authenticate_user = User.objects.create_user( 
+         username= "test2",email= "test2@gmail.com",
+         phone_number=   "0123131",dob= "2022-03-02",street= "231",
+         zip_code= 246285,city= "Banglore",state= "Karnataka",country= "India",
+         password= "password"
+      )
+      self.superuser = User.objects.create_superuser( 
+         username= "super",email= "test.test.1002.200@gmail.com",
+         phone_number= "0123123123", dob= "2022-03-02", street= "231",
+         zip_code= 246285, city= "Banglore", state= "Karnataka",
+         country= "India", password= "password",school=self.school,groups=self.coach_group
+      )
+
+   def test_delete_user_by_anonymous(self):
+      """The user has not permissions to delete the user"""
+      url = reverse("users-detail",kwargs={"pk": self.teacher_user.pk})
+      response =  self.client.delete(url)
+      self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+   def test_delete_authenticate_user_own_details(self):
+      """Authenticated user can delete its own data only"""
+      token = Token.objects.create(user = self.authenticate_user)
+      self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
+      url = reverse("users-detail",kwargs={"pk": self.authenticate_user.pk})
+      response =  self.client.delete(url)
+      self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+   def test_delete_user_details_by_other_user(self):
+      """ Authenticated user can not delete other user data """
+      token = Token.objects.create(user = self.teacher_user)
+      self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
+      url = reverse("users-detail",kwargs={"pk": self.coach_user.pk})
+      response =  self.client.delete(url)
+      self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+   def test_delete_user_by_superuser(self):
+      """ Super user can delete every user data """
+      token = Token.objects.create(user = self.superuser)
+      self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
+      url = reverse("users-detail",kwargs={"pk": self.coach_user.pk})
+      response =  self.client.delete(url)
+      self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+   def test_delete_superuseruser_details_by_superuser(self):
+      """ Super user can delete own data """
+      token = Token.objects.create(user = self.superuser)
+      self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
+      url = reverse("users-detail",kwargs={"pk": self.superuser.pk})
+      response =  self.client.delete(url)
+      self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+   def test_delete_user_details_by_coach_user_of_other_user(self):
+      """ Coach user can not delete other user data """
+      token = Token.objects.create(user = self.coach_user)
+      self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
+      url = reverse("users-detail",kwargs={"pk": self.teacher_user.pk})
+      response =  self.client.delete(url)
+      self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+   def test_delete_user_details_by_coach_self(self):
+      """ Coach user can delete his own data """
+      token = Token.objects.create(user = self.coach_user)
+      self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
+      url = reverse("users-detail",kwargs={"pk": self.coach_user.pk})
+      response =  self.client.delete(url)
+      self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+     
+
+   def test_delete_user_details_by_teacher_self(self):
+      """ Coach user can delete his own data """
+      token = Token.objects.create(user = self.teacher_user)
+      self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
+      url = reverse("users-detail",kwargs={"pk": self.teacher_user.pk})
+      response =  self.client.delete(url)
+      self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+   def test_delete_user_details_by_teacher_otheruser(self):
+      """ Coach user can delete his own data """
+      token = Token.objects.create(user = self.teacher_user)
+      self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
+      url = reverse("users-detail",kwargs={"pk": self.coach_user.pk})
+      response =  self.client.delete(url)
+      self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+
+class ListUserTestCases(APITestCase):
+   def setUp(self):
+      """ Update users to test your code """
+      self.school= School.objects.create(name='name')
+      self.teacher_group = Group.objects.create(
+         name= "Teacher"
+      )
+      self.coach_group = Group.objects.create(
+         name= "Coach"
+      )
+      self.teacher_user = User.objects.create_user( 
+         username= "test",email= "test.test.1002.2001@gmail.com",
+         phone_number=   "01231231230",dob= "2022-03-02",street= "231",
+         zip_code= 246285,city= "Banglore",state= "Karnataka",
+         country= "India",password= "password",school=self.school, groups=self.teacher_group
+      )
+
+      self.coach_user = User.objects.create_user( 
+         username= "test1",  email= "test.test.1002.20@gmail.com",
+         phone_number= "01231231000", dob= "2022-03-02", street= "231",
+         zip_code= 246285, city= "Banglore", state= "Karnataka",
+         country= "India", password= "password",school=self.school,groups=self.coach_group
+      )
+
+      self.superuser = User.objects.create_superuser( 
+         username= "super",email= "test.test.1002.200@gmail.com",
+         phone_number= "0123123123", dob= "2022-03-02", street= "231",
+         zip_code= 246285, city= "Banglore", state= "Karnataka",
+         country= "India", password= "password"
+      )
+
+   def test_list_all_users_for_anonymous_user(self):
+         """The user has not permissions to view details of users"""
+         response= self.client.get(reverse("users-list"))
+         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+   def test_list_all_users_for_autheticate_user(self):
+         """The user has not permissions to view details of own"""
+         token = Token.objects.create(user = self.teacher_user)
+         self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
+         response= self.client.get(reverse("users-list"))
+         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+   def test_list_all_users_for_superuser_user(self):
+         """ The user has not permissions to view details of own """
+         token = Token.objects.create(user = self.superuser)
+         self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
+         response= self.client.get(reverse("users-list"))
+         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+   def test_list_all_users_for_coach_user(self):
+         """ coach user can view all teachers in in school """
+         token = Token.objects.create(user = self.coach_user)
+         self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
+         response= self.client.get(reverse("users-list"))
+         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+   def test_list_teacher_user_for_teacher_user(self):
+         """ The user has not permissions to view details of own """
+         token = Token.objects.create(user = self.teacher_user)
+         self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
+         response= self.client.get(reverse("users-list"))
+         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+
+class CreateGroupTestCases(APITestCase):
+   """Create group test cases"""
+   def setUp(self):
+      self.teacher_group = Group.objects.create(
+         name= "Teacher"
+      )
+      self.coach_group = Group.objects.create(
+         name= "Coach"
+      )
+      self.school = School.objects.create( 
+         name= "Primary" 
+      )
+      
+      self.teacher_user = User.objects.create_user( 
+         username= "test",email= "test.test.1002.2001@gmail.com",
+         phone_number=   "01231231230",dob= "2022-03-02",street= "231",
+         zip_code= 246285,city="Banglore",state= "Karnataka",country= "India",
+         password= "password",school=self.school,groups=self.teacher_group
+      )
+      self.coach_user = User.objects.create_user( 
+         username= "test1",  email= "test.test.1002.20@gmail.com",
+         phone_number= "01231231000", dob= "2022-03-02", street= "231",
+         zip_code= 246285, city= "Banglore", state= "Karnataka",
+         country= "India", password= "password",school=self.school,groups=self.coach_group
+      )
+      self.authenticate_user = User.objects.create_user( 
+         username= "test2",email= "test.test.10.2001@gmail.com",
+         phone_number=   "012331230",dob= "2022-03-02",street= "231",
+         zip_code= 246285,city="Banglore",state= "Karnataka",country= "India",
+         password= "password"
+      )
+      self.superuser = User.objects.create_superuser( 
+         username= "super",email= "test.test.1002.200@gmail.com",
+         phone_number= "0123123123", dob= "2022-03-02", street= "231",
+         zip_code= 246285, city= "Banglore", state= "Karnataka",
+         country= "India", password= "password"
+      )
+
+   def test_group_create_by_superuser(self):
+      """Super user can post the new group """
+      token = Token.objects.create(user = self.superuser)
+      self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
+      response = self.client.post(reverse("group-list"),data= {"name":"nam"})
+      self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+   def test_group_create_by_authenticate_user(self):
+      """Authenticated user can not post the new groups"""
+      token = Token.objects.create(user = self.authenticate_user)
       self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
       response = self.client.post(reverse("group-list"),data= {'name':'name'})
       self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-   def test_group_get_case_for_authenticate(self):
-      token = Token.objects.create(user = self.user1)
-      self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
-      response = self.client.get(reverse("group-list"))
-      self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-   def test_group_post_for_anonymous(self):
+   def test_group_post_by_anonymous_user(self):
+      """Anonymous user can not post the new group """
       response = self.client.post(reverse("group-list"),data= {'name':'name'})
       self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-   def test_group_get_for_anonymous(self):
+
+   def test_group_create_by_coach_user(self):
+      """coach user can not post the new groups"""
+      token = Token.objects.create(user = self.coach_user)
+      self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
+      response = self.client.post(reverse("group-list"),data= {'name':'name'})
+      self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+   def test_group_create_by_teacher_user(self):
+      """teacher user can not create the groups"""
+      token = Token.objects.create(user = self.teacher_user)
+      self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
+      response = self.client.post(reverse("group-list"),data= {'name':'name'})
+      self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+
+class UpdateGroupTestCases(APITestCase):
+   """Update group test cases"""
+   def setUp(self):
+      self.teacher_group = Group.objects.create(
+         name= "Teacher"
+      )
+      self.coach_group = Group.objects.create(
+         name= "Coach"
+      )
+      self.school = School.objects.create( 
+         name= "Primary" 
+      )
+      
+      self.teacher_user = User.objects.create_user( 
+         username= "test",email= "test.test.1002.2001@gmail.com",
+         phone_number=   "01231231230",dob= "2022-03-02",street= "231",
+         zip_code= 246285,city="Banglore",state= "Karnataka",country= "India",
+         password= "password",school=self.school,groups=self.teacher_group
+      )
+      self.coach_user = User.objects.create_user( 
+         username= "test1",  email= "test.test.1002.20@gmail.com",
+         phone_number= "01231231000", dob= "2022-03-02", street= "231",
+         zip_code= 246285, city= "Banglore", state= "Karnataka",
+         country= "India", password= "password",school=self.school,groups=self.coach_group
+      )
+      self.authenticate_user = User.objects.create_user( 
+         username= "test2",email= "test.test.10.2001@gmail.com",
+         phone_number=   "012331230",dob= "2022-03-02",street= "231",
+         zip_code= 246285,city="Banglore",state= "Karnataka",country= "India",
+         password= "password"
+      )
+      self.superuser = User.objects.create_superuser( 
+         username= "super",email= "test.test.1002.200@gmail.com",
+         phone_number= "0123123123", dob= "2022-03-02", street= "231",
+         zip_code= 246285, city= "Banglore", state= "Karnataka",
+         country= "India", password= "password"
+      )
+   def test_group_update_for_superuser(self):
+      """Super user can update the groups only """
+      token = Token.objects.create(user = self.superuser)
+      self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
+      response = self.client.put(reverse("group-detail",kwargs={"pk":self.teacher_group.id}),data= {'name':'name'})
+      self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+   def test_group_update_for_authenticate_user(self):
+      """authenticate user can not update the group"""
+      token = Token.objects.create(user = self.authenticate_user)
+      self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
+      response = self.client.put(reverse("group-detail",kwargs={"pk":self.teacher_group.id}),data= {'name':'nam'})
+      self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+   def test_group_update_for_anonymous_user(self):
+      """Anonymous user can not update group """
+      response = self.client.put(reverse("group-detail",kwargs={"pk":self.teacher_group.id}),data= {'name':'nam'})
+      self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+   def test_group_update_for_teacher_user(self):
+      """Teacher user can not update the group"""
+      token = Token.objects.create(user = self.teacher_user)
+      self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
+      response = self.client.put(reverse("group-detail",kwargs={"pk":self.teacher_group.id}),data= {'name':'nam'})
+      self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+   def test_group_update_for_coach_user(self):
+      """Coach user can not update the group"""
+      token = Token.objects.create(user = self.coach_user)
+      self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
+      response = self.client.put(reverse("group-detail",kwargs={"pk":self.teacher_group.id}),data= {'name':'nam'})
+      self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+  
+
+class DeleteGroupTestCases(APITestCase):
+   """delete groups test cases"""
+   def setUp(self):
+      self.teacher_group = Group.objects.create(
+         name= "Teacher"
+      )
+      self.coach_group = Group.objects.create(
+         name= "Coach"
+      )
+      self.school = School.objects.create( 
+         name= "Primary" 
+      )
+      
+      self.teacher_user = User.objects.create_user( 
+         username= "test",email= "test.test.1002.2001@gmail.com",
+         phone_number=   "01231231230",dob= "2022-03-02",street= "231",
+         zip_code= 246285,city="Banglore",state= "Karnataka",country= "India",
+         password= "password",school=self.school,groups=self.teacher_group
+      )
+      self.coach_user = User.objects.create_user( 
+         username= "test1",  email= "test.test.1002.20@gmail.com",
+         phone_number= "01231231000", dob= "2022-03-02", street= "231",
+         zip_code= 246285, city= "Banglore", state= "Karnataka",
+         country= "India", password= "password",school=self.school,groups=self.coach_group
+      )
+      self.authenticate_user = User.objects.create_user( 
+         username= "test2",email= "test.test.10.2001@gmail.com",
+         phone_number=   "012331230",dob= "2022-03-02",street= "231",
+         zip_code= 246285,city="Banglore",state= "Karnataka",country= "India",
+         password= "password"
+      )
+      self.superuser = User.objects.create_superuser( 
+         username= "super",email= "test.test.1002.200@gmail.com",
+         phone_number= "0123123123", dob= "2022-03-02", street= "231",
+         zip_code= 246285, city= "Banglore", state= "Karnataka",
+         country= "India", password= "password"
+      )
+
+   def test_group_delete_for_superuser(self):
+      """Super user can delete the groups """
+      token = Token.objects.create(user = self.superuser)
+      self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
+      response = self.client.delete(reverse("group-detail",kwargs={"pk":self.teacher_group.id}))
+      self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+   def test_group_delete_for_authenticate_user(self):
+      """authenticate user can not delete the group """
+      token = Token.objects.create(user = self.authenticate_user)
+      self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
+      response = self.client.delete(reverse("group-detail",kwargs={"pk":self.teacher_group.id}))
+      self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+   def test_group_delete_for_teacher_user(self):
+      """teacher user can not delete the group """
+      token = Token.objects.create(user = self.teacher_user)
+      self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
+      response = self.client.delete(reverse("group-detail",kwargs={"pk":self.teacher_group.id}))
+      self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+   def test_group_delete_for_coach_user(self):
+      """coach user can not delete the group """
+      token = Token.objects.create(user = self.coach_user)
+      self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
+      response = self.client.delete(reverse("group-detail",kwargs={"pk":self.teacher_group.id}))
+      self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+   def test_group_delete_for_anonymous_user(self):
+      """Anonymous user can not delete group """
+      response = self.client.delete(reverse("group-detail",kwargs={"pk":self.teacher_group.id}))
+      self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+
+class ListGroupTestCases(APITestCase):
+   """list groups test cases"""
+   def setUp(self):
+      self.teacher_group = Group.objects.create(
+         name= "Teacher"
+      )
+      self.coach_group = Group.objects.create(
+         name= "Coach"
+      )
+      self.school = School.objects.create( 
+         name= "Primary" 
+      )
+      
+      self.teacher_user = User.objects.create_user( 
+         username= "test",email= "test.test.1002.2001@gmail.com",
+         phone_number=   "01231231230",dob= "2022-03-02",street= "231",
+         zip_code= 246285,city="Banglore",state= "Karnataka",country= "India",
+         password= "password",school=self.school,groups=self.teacher_group
+      )
+      self.coach_user = User.objects.create_user( 
+         username= "test1",  email= "test.test.1002.20@gmail.com",
+         phone_number= "01231231000", dob= "2022-03-02", street= "231",
+         zip_code= 246285, city= "Banglore", state= "Karnataka",
+         country= "India", password= "password",school=self.school,groups=self.coach_group
+      )
+      self.authenticate_user = User.objects.create_user( 
+         username= "test2",email= "test.test.10.2001@gmail.com",
+         phone_number=   "012331230",dob= "2022-03-02",street= "231",
+         zip_code= 246285,city="Banglore",state= "Karnataka",country= "India",
+         password= "password"
+      )
+      self.superuser = User.objects.create_superuser( 
+         username= "super",email= "test.test.1002.200@gmail.com",
+         phone_number= "0123123123", dob= "2022-03-02", street= "231",
+         zip_code= 246285, city= "Banglore", state= "Karnataka",
+         country= "India", password= "password"
+      )
+
+   def test_group_list_for_superuser(self):
+      """super user can see groups"""
+      token = Token.objects.create(user = self.superuser)
+      self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
+      response = self.client.get(reverse("group-list"))
+      self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+   def test_group_list_for_authenticate_user(self):
+      """authenticated user can see the groups """
+      token = Token.objects.create(user = self.authenticate_user)
+      self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
+      response = self.client.get(reverse("group-list"))
+      self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+   def test_group_list_for_teacher_user(self):
+      """Teacher user can see the groups """
+      token = Token.objects.create(user = self.teacher_user)
+      self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
+      response = self.client.get(reverse("group-list"))
+      self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+   def test_group_list_for_coach_user(self):
+      """Caach user can see the groups """
+      token = Token.objects.create(user = self.coach_user)
+      self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
+      response = self.client.get(reverse("group-list"))
+      self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+   def test_group_list_for_anonymous_user(self):
+      """anonymous user can not see the groups """
       response = self.client.get(reverse("group-list"))
       self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
-class SchoolTestCasesForAllUsers(APITestCase):
+
+class CreateSchoolTestCases(APITestCase):
+   """Create schools test cases"""
    def setUp(self):
-      self.superuser = User.objects.create_superuser( username= "test",
-         email= "test.test.1002.2001@gmail.com",
-         phone_number= "01231231230",
-         dob= "2022-03-02",
-         street= "231",
-         zip_code= 246285,
-         city= "Banglore",
-         state= "Karnataka",
-         country= "India",
-         password= "password",
+      self.teacher_group = Group.objects.create(
+         name= "Teacher"
       )
-      self.user1 = User.objects.create_user( username= "test1",
-         email= "test.test.1002.20@gmail.com",
-         phone_number= "01231231000",
-         dob= "2022-03-02",
-         street= "231",
-         zip_code= 246285,
-         city= "Banglore",
-         state= "Karnataka",
-         country= "India",
-         password= "password",
+      self.coach_group = Group.objects.create(
+         name= "Coach"
       )
-   def test_school_post_for_superuser(self):
+      self.school = School.objects.create( 
+         name= "Primary" 
+      )
+      
+      self.teacher_user = User.objects.create_user( 
+         username= "test",email= "test.test.1002.2001@gmail.com",
+         phone_number=   "01231231230",dob= "2022-03-02",street= "231",
+         zip_code= 246285,city="Banglore",state= "Karnataka",country= "India",
+         password= "password",school=self.school,groups=self.teacher_group
+      )
+      self.coach_user = User.objects.create_user( 
+         username= "test1",  email= "test.test.1002.20@gmail.com",
+         phone_number= "01231231000", dob= "2022-03-02", street= "231",
+         zip_code= 246285, city= "Banglore", state= "Karnataka",
+         country= "India", password= "password",school=self.school,groups=self.coach_group
+      )
+      self.authenticate_user = User.objects.create_user( 
+         username= "test2",email= "test.test.10.2001@gmail.com",
+         phone_number=   "012331230",dob= "2022-03-02",street= "231",
+         zip_code= 246285,city="Banglore",state= "Karnataka",country= "India",
+         password= "password"
+      )
+      self.superuser = User.objects.create_superuser( 
+         username= "super",email= "test.test.1002.200@gmail.com",
+         phone_number= "0123123123", dob= "2022-03-02", street= "231",
+         zip_code= 246285, city= "Banglore", state= "Karnataka",
+         country= "India", password= "password"
+      )
+
+   def test_school_create_by_superuser(self):
+      """Super user can post the new school only """
       token = Token.objects.create(user = self.superuser)
       self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
-      response= self.client.post(reverse('school-list'),data= {'name':'name'})
+      response = self.client.post(reverse("school-list"),data= {"name":"nam"})
       self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-   def test_school_get_for_superuser(self):
+
+   def test_school_create_by_authenticate_user(self):
+      """Authenticated user can not post the new school"""
+      token = Token.objects.create(user = self.authenticate_user)
+      self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
+      response = self.client.post(reverse("school-list"),data= {'name':'name'})
+      self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+   def test_school_post_by_anonymous_user(self):
+      """Anonymous user can not post the new school """
+      response = self.client.post(reverse("school-list"),data= {'name':'name'})
+      self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+   def test_school_create_by_coach_user(self):
+      """coach user can not post the new school"""
+      token = Token.objects.create(user = self.coach_user)
+      self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
+      response = self.client.post(reverse("school-list"),data= {'name':'name'})
+      self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+   def test_school_create_by_teacher_user(self):
+      """teacher user cna not create the school"""
+      token = Token.objects.create(user = self.teacher_user)
+      self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
+      response = self.client.post(reverse("school-list"),data= {'name':'name'})
+      self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+
+class UpdateSchoolTestCases(APITestCase):
+   """Update school test cases"""
+   def setUp(self):
+      self.teacher_group = Group.objects.create(
+         name= "Teacher"
+      )
+      self.coach_group = Group.objects.create(
+         name= "Coach"
+      )
+      self.school = School.objects.create( 
+         name= "Primary" 
+      )
+      
+      self.teacher_user = User.objects.create_user( 
+         username= "test",email= "test.test.1002.2001@gmail.com",
+         phone_number=   "01231231230",dob= "2022-03-02",street= "231",
+         zip_code= 246285,city="Banglore",state= "Karnataka",country= "India",
+         password= "password",school=self.school,groups=self.teacher_group
+      )
+      self.coach_user = User.objects.create_user( 
+         username= "test1",  email= "test.test.1002.20@gmail.com",
+         phone_number= "01231231000", dob= "2022-03-02", street= "231",
+         zip_code= 246285, city= "Banglore", state= "Karnataka",
+         country= "India", password= "password",school=self.school,groups=self.coach_group
+      )
+      self.authenticate_user = User.objects.create_user( 
+         username= "test2",email= "test.test.10.2001@gmail.com",
+         phone_number=   "012331230",dob= "2022-03-02",street= "231",
+         zip_code= 246285,city="Banglore",state= "Karnataka",country= "India",
+         password= "password"
+      )
+      self.superuser = User.objects.create_superuser( 
+         username= "super",email= "test.test.1002.200@gmail.com",
+         phone_number= "0123123123", dob= "2022-03-02", street= "231",
+         zip_code= 246285, city= "Banglore", state= "Karnataka",
+         country= "India", password= "password"
+      )
+   def test_school_update_for_superuser(self):
+      """Super user can update the schools only """
       token = Token.objects.create(user = self.superuser)
       self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
-      response= self.client.get(reverse('school-list'))
+      response = self.client.put(reverse("school-detail",kwargs={"pk":self.school.id}),data= {'name':'name'})
       self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-   def test_school_post_for_authenticated(self):
-      token = Token.objects.create(user = self.user1)
+   def test_school_update_for_authenticate_user(self):
+      """authenticate user can not update the schools"""
+      token = Token.objects.create(user = self.authenticate_user)
       self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
-      response= self.client.post(reverse('school-list'),data= {'name':'name'})
+      response = self.client.put(reverse("school-detail",kwargs={"pk":self.school.id}),data= {'name':'nam'})
       self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-   def test_school_get_for_authenticated(self):
-      token = Token.objects.create(user = self.user1)
+
+   def test_school_update_for_anonymous_user(self):
+      """Anonymous user can not update schools """
+      response = self.client.put(reverse("school-detail",kwargs={"pk":self.school.id}),data= {'name':'nam'})
+      self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+   def test_school_update_for_teacher_user(self):
+      """Teacher user can not update the schools"""
+      token = Token.objects.create(user = self.teacher_user)
       self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
-      response= self.client.get(reverse('school-list'))
+      response = self.client.put(reverse("school-detail",kwargs={"pk":self.school.id}),data= {'name':'nam'})
+      self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+   def test_group_update_for_coach_user(self):
+      """Coach user can not update the schools"""
+      token = Token.objects.create(user = self.coach_user)
+      self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
+      response = self.client.put(reverse("school-detail",kwargs={"pk":self.school.id}),data= {'name':'nam'})
+      self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+  
+
+class DeleteSchoolTestCases(APITestCase):
+   """delete school test cases"""
+   def setUp(self):
+      self.teacher_group = Group.objects.create(
+         name= "Teacher"
+      )
+      self.coach_group = Group.objects.create(
+         name= "Coach"
+      )
+      self.school = School.objects.create( 
+         name= "Primary" 
+      )
+      
+      self.teacher_user = User.objects.create_user( 
+         username= "test",email= "test.test.1002.2001@gmail.com",
+         phone_number=   "01231231230",dob= "2022-03-02",street= "231",
+         zip_code= 246285,city="Banglore",state= "Karnataka",country= "India",
+         password= "password",school=self.school,groups=self.teacher_group
+      )
+      self.coach_user = User.objects.create_user( 
+         username= "test1",  email= "test.test.1002.20@gmail.com",
+         phone_number= "01231231000", dob= "2022-03-02", street= "231",
+         zip_code= 246285, city= "Banglore", state= "Karnataka",
+         country= "India", password= "password",school=self.school,groups=self.coach_group
+      )
+      self.authenticate_user = User.objects.create_user( 
+         username= "test2",email= "test.test.10.2001@gmail.com",
+         phone_number=   "012331230",dob= "2022-03-02",street= "231",
+         zip_code= 246285,city="Banglore",state= "Karnataka",country= "India",
+         password= "password"
+      )
+      self.superuser = User.objects.create_superuser( 
+         username= "super",email= "test.test.1002.200@gmail.com",
+         phone_number= "0123123123", dob= "2022-03-02", street= "231",
+         zip_code= 246285, city= "Banglore", state= "Karnataka",
+         country= "India", password= "password"
+      )
+
+   def test_group_delete_for_superuser(self):
+      """Super user can delete the school """
+      token = Token.objects.create(user = self.superuser)
+      self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
+      response = self.client.delete(reverse("school-detail",kwargs={"pk":self.school.id}))
+      self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+   def test_group_delete_for_authenticate_user(self):
+      """authenticate user can not delete the school """
+      token = Token.objects.create(user = self.authenticate_user)
+      self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
+      response = self.client.delete(reverse("school-detail",kwargs={"pk":self.school.id}))
+      self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+   def test_group_delete_for_teacher_user(self):
+      """teacher user can not delete the school """
+      token = Token.objects.create(user = self.teacher_user)
+      self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
+      response = self.client.delete(reverse("school-detail",kwargs={"pk":self.school.id}))
+      self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+   def test_group_delete_for_coach_user(self):
+      """coach user can not delete the school """
+      token = Token.objects.create(user = self.coach_user)
+      self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
+      response = self.client.delete(reverse("school-detail",kwargs={"pk":self.school.id}))
+      self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+   def test_group_delete_for_anonymous_user(self):
+      """Anonymous user can not delete school """
+      response = self.client.delete(reverse("school-detail",kwargs={"pk":self.school.id}))
+      self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+
+class ListSchoolTestCases(APITestCase):
+   """list school test cases"""
+   def setUp(self):
+      self.teacher_group = Group.objects.create(
+         name= "Teacher"
+      )
+      self.coach_group = Group.objects.create(
+         name= "Coach"
+      )
+      self.school = School.objects.create( 
+         name= "Primary" 
+      )
+      
+      self.teacher_user = User.objects.create_user( 
+         username= "test",email= "test.test.1002.2001@gmail.com",
+         phone_number=   "01231231230",dob= "2022-03-02",street= "231",
+         zip_code= 246285,city="Banglore",state= "Karnataka",country= "India",
+         password= "password",school=self.school,groups=self.teacher_group
+      )
+      self.coach_user = User.objects.create_user( 
+         username= "test1",  email= "test.test.1002.20@gmail.com",
+         phone_number= "01231231000", dob= "2022-03-02", street= "231",
+         zip_code= 246285, city= "Banglore", state= "Karnataka",
+         country= "India", password= "password",school=self.school,groups=self.coach_group
+      )
+      self.authenticate_user = User.objects.create_user( 
+         username= "test2",email= "test.test.10.2001@gmail.com",
+         phone_number=   "012331230",dob= "2022-03-02",street= "231",
+         zip_code= 246285,city="Banglore",state= "Karnataka",country= "India",
+         password= "password"
+      )
+      self.superuser = User.objects.create_superuser( 
+         username= "super",email= "test.test.1002.200@gmail.com",
+         phone_number= "0123123123", dob= "2022-03-02", street= "231",
+         zip_code= 246285, city= "Banglore", state= "Karnataka",
+         country= "India", password= "password"
+      )
+
+   def test_school_list_for_superuser(self):
+      """super user can see schools"""
+      token = Token.objects.create(user = self.superuser)
+      self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
+      response = self.client.get(reverse("school-list"))
       self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-   def test_school_post_for_anonymous(self):
-      response= self.client.post(reverse('school-list'),data= {'name':'name'})
+   def test_school_list_for_authenticate_user(self):
+      """authenticated user can see the schools """
+      token = Token.objects.create(user = self.authenticate_user)
+      self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
+      response = self.client.get(reverse("school-list"))
+      self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+   def test_school_list_for_teacher_user(self):
+      """Teacher user can see the schools """
+      token = Token.objects.create(user = self.teacher_user)
+      self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
+      response = self.client.get(reverse("school-list"))
+      self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+   def test_school_list_for_coach_user(self):
+      """Caach user can see the schools """
+      token = Token.objects.create(user = self.coach_user)
+      self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
+      response = self.client.get(reverse("school-list"))
+      self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+   def test_school_get_for_anonymous_user(self):
+      """anonymous user can not see the schools """
+      response = self.client.get(reverse("school-list"))
       self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-   def test_school_get_for_anonymous(self):
-      response= self.client.get(reverse('school-list'))
+
+
+class UserLoginTestCase(APITestCase):
+   """Login and logout tests"""
+   def setUp(self):
+      self.teacher_group = Group.objects.create(
+         name= "Teacher"
+      )
+      self.coach_group = Group.objects.create(
+         name= "Coach"
+      )
+      self.school = School.objects.create( 
+         name= "Primary" 
+      )
+      self.teacher_user = User.objects.create_user( 
+         username= "test",email= "test.test.1002.2001@gmail.com",
+         phone_number=   "01231231230",dob= "2022-03-02",street= "231",
+         zip_code= 246285,city="Banglore",state= "Karnataka",country= "India",
+         password= "password",school=self.school,groups=self.teacher_group
+      )
+      self.coach_user = User.objects.create_user( 
+         username= "test1",  email= "test.test.1002.20@gmail.com",
+         phone_number= "01231231000", dob= "2022-03-02", street= "231",
+         zip_code= 246285, city= "Banglore", state= "Karnataka",
+         country= "India", password= "password",school=self.school,groups=self.coach_group
+      )
+      self.authenticate_user = User.objects.create_user( 
+         username= "test2",email= "test.test.10.2001@gmail.com",
+         phone_number=   "012331230",dob= "2022-03-02",street= "231",
+         zip_code= 246285,city="Banglore",state= "Karnataka",country= "India",
+         password= "password"
+      )
+      self.superuser = User.objects.create_superuser( 
+         username= "super",email= "test.test.1002.200@gmail.com",
+         phone_number= "0123123123", dob= "2022-03-02", street= "231",
+         zip_code= 246285, city= "Banglore", state= "Karnataka",
+         country= "India", password= "password"
+      )
+
+   def test_anonymous_user_login(self):
+      """User login creadentials"""
+      data= {
+         'username':'test',
+         'email':"test.test@gmail.com",
+         'password':'password'
+      }
+      response = self.client.post(reverse('login'),data=data)
+      self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+   def test_superuser_login(self):
+      """super User login test"""
+      data= {
+         'username':'test',
+         'email':"test.test@gmail.com",
+         'password':'password'
+      }
+      token= Token.objects.create(user=self.superuser)
+      self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
+      response = self.client.post(reverse('login'),data=data)
+      self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+   def test_authenticateuser_login(self):
+      """super User login test"""
+      data= {
+         'username':'test',
+         'email':"test.test@gmail.com",
+         'password':'password'
+      }
+      token= Token.objects.create(user=self.authenticate_user)
+      self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
+      response = self.client.post(reverse('login'),data=data)
+      self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+   def test_coachuser_login(self):
+      """super User login test"""
+      data= {
+         'username':'test',
+         'email':"test.test@gmail.com",
+         'password':'password'
+      }
+      token= Token.objects.create(user=self.coach_user)
+      self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
+      response = self.client.post(reverse('login'),data=data)
+      self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+   def test_teacheruser_login(self):
+      """super User login test"""
+      data= {
+         'username':'test',
+         'email':"test.test@gmail.com",
+         'password':'password'
+      }
+      token= Token.objects.create(user=self.teacher_user)
+      self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
+      response = self.client.post(reverse('login'),data=data)
+      self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+
+class UserLogoutTestCase(APITestCase):
+   """Login and logout tests"""
+   def setUp(self):
+      self.teacher_group = Group.objects.create(
+         name= "Teacher"
+      )
+      self.coach_group = Group.objects.create(
+         name= "Coach"
+      )
+      self.school = School.objects.create( 
+         name= "Primary" 
+      )
+      self.teacher_user = User.objects.create_user( 
+         username= "test",email= "test.test.1002.2001@gmail.com",
+         phone_number=   "01231231230",dob= "2022-03-02",street= "231",
+         zip_code= 246285,city="Banglore",state= "Karnataka",country= "India",
+         password= "password",school=self.school,groups=self.teacher_group
+      )
+      self.coach_user = User.objects.create_user( 
+         username= "test1",  email= "test.test.1002.20@gmail.com",
+         phone_number= "01231231000", dob= "2022-03-02", street= "231",
+         zip_code= 246285, city= "Banglore", state= "Karnataka",
+         country= "India", password= "password",school=self.school,groups=self.coach_group
+      )
+      self.authenticate_user = User.objects.create_user( 
+         username= "test2",email= "test.test.10.2001@gmail.com",
+         phone_number=   "012331230",dob= "2022-03-02",street= "231",
+         zip_code= 246285,city="Banglore",state= "Karnataka",country= "India",
+         password= "password"
+      )
+      self.superuser = User.objects.create_superuser( 
+         username= "super",email= "test.test.1002.200@gmail.com",
+         phone_number= "0123123123", dob= "2022-03-02", street= "231",
+         zip_code= 246285, city= "Banglore", state= "Karnataka",
+         country= "India", password= "password"
+      )
+
+   def test_anonymous_user_logout(self):
+      """User login creadentials"""
+      response = self.client.post(reverse('logout'),data={})
       self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+   def test_superuser_logout(self):
+      """super User login test"""
+      token= Token.objects.create(user=self.superuser)
+      self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
+      response = self.client.post(reverse('logout'),data={})
+      self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+   def test_authenticateuser_logout(self):
+      """super User login test"""
+      token= Token.objects.create(user=self.authenticate_user)
+      self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
+      response = self.client.post(reverse('logout'),data={})
+      self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+   def test_coachuser_logout(self):
+      """super User login test"""
+      token= Token.objects.create(user=self.coach_user)
+      self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
+      response = self.client.post(reverse('logout'),data={})
+      self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+   def test_teacheruser_logout(self):
+      """super User login test"""
+      token= Token.objects.create(user=self.teacher_user)
+      self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
+      response = self.client.post(reverse('logout'),data={})
+      self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+
+
+class ChangePasswordTestCases(APITestCase):
+   """Password related tasks"""
+   def setUp(self):
+      self.teacher_group = Group.objects.create(
+         name= "Teacher"
+      )
+      self.coach_group = Group.objects.create(
+         name= "Coach"
+      )
+      self.school = School.objects.create( 
+         name= "Primary" 
+      )
+      self.teacher_user = User.objects.create_user( 
+         username= "test",email= "test.test.1002.2001@gmail.com",
+         phone_number=   "01231231230",dob= "2022-03-02",street= "231",
+         zip_code= 246285,city="Banglore",state= "Karnataka",country= "India",
+         password= "password",school=self.school,groups=self.teacher_group
+      )
+      self.coach_user = User.objects.create_user( 
+         username= "test1",  email= "test.test.1002.20@gmail.com",
+         phone_number= "01231231000", dob= "2022-03-02", street= "231",
+         zip_code= 246285, city= "Banglore", state= "Karnataka",
+         country= "India", password= "password",school=self.school,groups=self.coach_group
+      )
+      self.authenticate_user = User.objects.create_user( 
+         username= "test2",email= "test.test.10.2001@gmail.com",
+         phone_number=   "012331230",dob= "2022-03-02",street= "231",
+         zip_code= 246285,city="Banglore",state= "Karnataka",country= "India",
+         password= "password"
+      )
+      self.superuser = User.objects.create_superuser( 
+         username= "super",email= "test.test.1002.200@gmail.com",
+         phone_number= "0123123123", dob= "2022-03-02", street= "231",
+         zip_code= 246285, city= "Banglore", state= "Karnataka",
+         country= "India", password= "password"
+      )
+
+   def test_change_password_superuser(self):
+      """Change your password but you should have your old password"""
+      data = {
+         "old_password":"password",
+         "password1":"change",
+         "password2":"change"
+      }
+      token = Token.objects.create(user = self.superuser)
+      self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
+      response= self.client.post(reverse("change-password"), data= data)
+      self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+   def test_change_password_authenticateuser(self):
+      """Change your password but you should have your old password"""
+      data = {
+         "old_password":"password",
+         "password1":"change",
+         "password2":"change"
+      }
+      token = Token.objects.create(user = self.authenticate_user)
+      self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
+      response= self.client.post(reverse("change-password"), data= data)
+      self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+   def test_change_password_coachuser(self):
+      """Change your password but you should have your old password"""
+      data = {
+         "old_password":"password",
+         "password1":"change",
+         "password2":"change"
+      }
+      token = Token.objects.create(user = self.coach_user)
+      self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
+      response= self.client.post(reverse("change-password"), data= data)
+      self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+   def test_change_password_teacheruser(self):
+      """Change your password but you should have your old password"""
+      data = {
+         "old_password":"password",
+         "password1":"change",
+         "password2":"change"
+      }
+      token = Token.objects.create(user = self.coach_user)
+      self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
+      response= self.client.post(reverse("change-password"), data= data)
+      self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+   def test_change_password_anonymoususer(self):
+      """Change your password but you should have your old password"""
+      data = {
+         "old_password":"password",
+         "password1":"change",
+         "password2":"change"
+      }
+      response= self.client.post(reverse("change-password"), data= data)
+      self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+
+class PasswordResetSendMailTestCases(APITestCase):
+   """Password related tasks"""
+   def setUp(self):
+      self.teacher_group = Group.objects.create(
+         name= "Teacher"
+      )
+      self.coach_group = Group.objects.create(
+         name= "Coach"
+      )
+      self.school = School.objects.create( 
+         name= "Primary" 
+      )
+      self.teacher_user = User.objects.create_user( 
+         username= "test",email= "test.test.1002.2001@gmail.com",
+         phone_number=   "01231231230",dob= "2022-03-02",street= "231",
+         zip_code= 246285,city="Banglore",state= "Karnataka",country= "India",
+         password= "password",school=self.school,groups=self.teacher_group
+      )
+      self.coach_user = User.objects.create_user( 
+         username= "test1",  email= "test.test.1002.20@gmail.com",
+         phone_number= "01231231000", dob= "2022-03-02", street= "231",
+         zip_code= 246285, city= "Banglore", state= "Karnataka",
+         country= "India", password= "password",school=self.school,groups=self.coach_group
+      )
+      self.authenticate_user = User.objects.create_user( 
+         username= "test2",email= "test.test.10.2001@gmail.com",
+         phone_number=   "012331230",dob= "2022-03-02",street= "231",
+         zip_code= 246285,city="Banglore",state= "Karnataka",country= "India",
+         password= "password"
+      )
+      self.superuser = User.objects.create_superuser( 
+         username= "super",email= "test.test.1002.200@gmail.com",
+         phone_number= "0123123123", dob= "2022-03-02", street= "231",
+         zip_code= 246285, city= "Banglore", state= "Karnataka",
+         country= "India", password= "password"
+      )
+
+   def test_forgot_password_send_mail_superuser(self):
+      """Forgot your password, enter your mail you will get email to reset password"""
+      data = {
+         'email' : "user@gmail.com",
+      }
+      token = Token.objects.create(user = self.superuser)
+      self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
+      response= self.client.post(reverse("reset-password"), data= data)
+      self.assertEqual(response.status_code, status.HTTP_200_OK)
+   
+   def test_forgot_password_send_mail_authenticate(self):
+      """Forgot your password, enter your mail you will get email to reset password"""
+      data = {
+         'email' : "user@gmail.com",
+      }
+      token = Token.objects.create(user = self.authenticate_user)
+      self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
+      response= self.client.post(reverse("reset-password"), data= data)
+      self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+   def test_forgot_password_send_mail_coach(self):
+      """Forgot your password, enter your mail you will get email to reset password"""
+      data = {
+         'email' : "user@gmail.com",
+      }
+      token = Token.objects.create(user = self.coach_user)
+      self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
+      response= self.client.post(reverse("reset-password"), data= data)
+      self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+   def test_forgot_password_send_mail_teacher(self):
+      """Forgot your password, enter your mail you will get email to reset password"""
+      data = {
+         'email' : "user@gmail.com",
+      }
+      token = Token.objects.create(user = self.teacher_user)
+      self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
+      response= self.client.post(reverse("reset-password"), data= data)
+      self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+   def test_forgot_password_send_mail_unauthenticate(self):
+      """Forgot your password, enter your mail you will get email to reset password"""
+      data = {
+         'email' : "user@gmail.com",
+      }
+      response= self.client.post(reverse("reset-password"), data= data)
+      self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+
+
+
+
 

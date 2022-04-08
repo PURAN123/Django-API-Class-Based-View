@@ -1,5 +1,14 @@
+
+from django.contrib.auth.models import AbstractUser, Group
 from django.db import models
-from django.contrib.auth.models import AbstractUser,Group
+
+
+class School(models.Model):
+   """ Create a School model """
+   name= models.CharField(max_length=100,unique=True)
+   def __str__(self):
+      return self.name
+
 class User(AbstractUser):
    """Abstract the base user of django user model and create the API User of it"""
    email = models.EmailField(max_length=150, unique=True)
@@ -11,14 +20,12 @@ class User(AbstractUser):
    state = models.CharField(max_length=100)
    country = models.CharField(max_length=50) 
    password= models.CharField(max_length=200)
-   school = models.ForeignKey('School', on_delete=models.CASCADE,blank=True,null=True)
-   groups = models.ForeignKey(Group, on_delete=models.CASCADE,blank=True,null=True)
+   school = models.ForeignKey(School, on_delete=models.SET_NULL,\
+                              blank=True,null=True)
+   groups = models.ForeignKey(Group, on_delete=models.SET_NULL,\
+                              blank=True,null=True)
 
    def __str__(self):
       """Return the user with its email address name"""
       return self.email
 
-class School(models.Model):
-   name= models.CharField(max_length=100,unique=True)
-   def __str__(self):
-      return self.name

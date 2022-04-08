@@ -13,42 +13,53 @@ from rest_framework.authentication import (SessionAuthentication,
                                            TokenAuthentication)
 from rest_framework.authtoken.models import Token
 from rest_framework.filters import SearchFilter
-from rest_framework.permissions import AllowAny, IsAuthenticated,IsAdminUser
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from userms import settings
 
 from .models import School, User
-from .permissions import CustomPermission,GroupSchoolPermissions
-from .serializer import (ChangePasswordSeriallizer, CustomLoginTokenSerializer,
-                         Customlogout, GroupSerializer,
+from .permissions import CustomPermissions, CustomPermissionUser
+from .serializer import (ChangePasswordSeriallizer, LoginSerializer,
+                         LogoutSerializer, GroupSerializer,
                          ResetNewPasswordSerializer, SchoolSerializer,
                          SendPasswordResetEmailSerializer, UserSerializer,
-                         UserUpdateSerializer)
+                         UserUpdateSerializer,UserListSerializer)
 from .tokens import generate_token
 
 
 class UserView(viewsets.ModelViewSet):
+   """User view which will return the user as logged in user permissions"""
+
    authentication_classes=[TokenAuthentication,SessionAuthentication]
-   permission_classes= [CustomPermission]
+   permission_classes= [CustomPermissionUser]
    filter_backends= [SearchFilter, DjangoFilterBackend]
    filterset_fields=["id","email","username"]
    search_fields=["first_name","last_name"]
 
    def get_serializer_class(self):
-      if self.action=="partial_update" or self.action=="update" or self.action=="retrieve":
-         return UserUpdateSerializer
-      else:
+      """Reeturn specific serializer according to requirement"""
+      if self.action== 'create':
          return UserSerializer
+      if self.action== 'update':
+         return UserUpdateSerializer
+      return UserListSerializer
+
    def get_queryset(self):
-      """Get all data of users in the API when the auper user is logged in """
+      """ Get users sccording to permissions of user """
       if self.request.user.is_superuser:
          return User.objects.all()
-
-      # """Return the data of specific user who is logged in """
-      elif self.request.user.is_authenticated:
+      
+      elif self.request.user.is_authenticated and self.request.user.groups == None:
          return User.objects.filter(pk=self.request.user.id)
 
-      # """ return None if no user is logged in and anonymaous user only can make a post """
+      elif self.request.user.groups.name=="Coach":
+         """Coach can see all teachers and coach of same school"""
+         return User.objects.filter(school= self.request.user.school.id)
+
+      elif self.request.user.groups.name=="Teacher":
+         """Teacher can see only  his data"""
+         return User.objects.filter(username= self.request.user.username)
+
       else:
          return User.objects.none()
 
@@ -61,10 +72,12 @@ class UserView(viewsets.ModelViewSet):
          return Response({'Message':"Please check your email to activate your account!"},status=status.HTTP_201_CREATED)
       return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
 
-class SuccessEmailView(generics.ListAPIView):
-   """"""
+
+class AccountActivatedView(generics.ListAPIView):
    """Send the user a success message"""
+
    def list(self,request,uidb64,token):
+      """Show usera success message """
       try:
          uid = force_text(urlsafe_base64_decode(uidb64))
          myuser=User.objects.get(pk=uid)
@@ -77,13 +90,16 @@ class SuccessEmailView(generics.ListAPIView):
       else:
          return Response({'Oops':"There is some problem to activate your account"})
 
+
 class ChangePasswordView(generics.CreateAPIView):
    """Change your password but you should have your old password"""
    serializer_class = ChangePasswordSeriallizer
    permission_classes= [IsAuthenticated,]
+
    def get_object(self):
       obj = self.request.user
       return obj
+
    def create(self, request, *args, **kwargs):
       self.object = self.get_object()
       serializer = self.get_serializer(data=request.data)
@@ -98,8 +114,9 @@ class ChangePasswordView(generics.CreateAPIView):
          return Response({"Oops":"Password1 does not match with Password2"},status=status.HTTP_400_BAD_REQUEST)
       return Response(serializer.errors,status=status.HTTP_404_NOT_FOUND)
 
-class SendRestPasswordEmailView(generics.CreateAPIView):
-   """Forgot your password, enter your mail you will get email to reset password"""
+
+class SendResetPasswordEmailView(generics.CreateAPIView):
+   """If you Forgot your password reset password by your email address """
    serializer_class = SendPasswordResetEmailSerializer
    def create(self, request, *args, **kwargs):
       serializer = self.get_serializer(data = request.data)
@@ -127,8 +144,9 @@ class SendRestPasswordEmailView(generics.CreateAPIView):
          return Response({"detials":"Email has been sent to your registered email address"},status=status.HTTP_200_OK)
       return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-class ResetNewPasswordView(generics.CreateAPIView):
-   """Check token and reset user password"""
+
+class ResetPasswordView(generics.CreateAPIView):
+   """Check user and token and reset user password"""
    serializer_class = ResetNewPasswordSerializer
    permission_classes=[AllowAny,]
    def create(self, request,uidb64, token):
@@ -148,68 +166,108 @@ class ResetNewPasswordView(generics.CreateAPIView):
             return Response({"success":"Password reset successfully! "},status=status.HTTP_200_OK)
          return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
 
-class CustomLoginTokenView(generics.CreateAPIView):
-   serializer_class= CustomLoginTokenSerializer
+
+class LoginView(generics.CreateAPIView):
+   """Login a user by its username,email and password and return its token and id"""
+   serializer_class= LoginSerializer
    def create(self,request):
       serializer= self.get_serializer(data= request.data)
       if serializer.is_valid():
          try:
             user  = User.objects.get(username=serializer.data.get('username'))
          except:
-            return Response({"Oops":"Provided Email or username doesn't associate with any User."})
+            return Response({"error":"Provided Email or username doesn't associate with any User."})
          if not user.check_password(serializer.data.get('password')):
             return Response({"Errors":"Unable to log in with provided credentials."},status=status.HTTP_400_BAD_REQUEST)
          if not user.is_active:
             return Response({"Errors":"Unable to log in with provided credentials."},status=status.HTTP_400_BAD_REQUEST)
          token,_ = Token.objects.get_or_create(user=user)
          login(request, user)
-         return Response({"Token":token.key, "user":token.user_id}, status= status.HTTP_200_OK)
+         return Response({"user":token.user_id,"Token":token.key}, status= status.HTTP_200_OK)
       return Response(serializer.errors)
 
-class CustomLogoutView(generics.CreateAPIView):
-   serializer_class= Customlogout
+
+class LogoutView(generics.CreateAPIView):
+   """ Logout user which is already logged in """
+   serializer_class= LogoutSerializer
    permission_classes=[IsAuthenticated]
    def create(self,request):
       logout(request)
       return Response({"logout":"logout successfully"})
 
+
 class SchoolView(viewsets.ModelViewSet):
-   """
-   Create school
-   Only super user can create school and other user can view it only
-   """
+   """School model view"""
    serializer_class= SchoolSerializer
    queryset= School.objects.all()
-   permission_classes=(GroupSchoolPermissions,)
+   permission_classes=[CustomPermissions,]
 
-   def create(self,request,*args, **kwargs):
-      serializer= self.get_serializer(data= self.request.data)
-      if serializer.is_valid():
-         s= School.objects.create(name= serializer.data['name'])
-         s.save()
-         return Response({"Done":"Created"},status=status.HTTP_201_CREATED)
-      return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class GroupView(viewsets.ModelViewSet):
-   """Create groups"""
+   """Group View """
    serializer_class = GroupSerializer
    queryset= Group.objects.all()
-   permission_classes=[GroupSchoolPermissions,]
+   permission_classes=[CustomPermissions]
 
-   def create(self,request,*args, **kwargs):
-      serializer= self.get_serializer(data= self.request.data)
-      if serializer.is_valid():
-         s= Group.objects.create(name= serializer.data['name'])
-         s.save()
-         return Response({"Group":"group Created Successfully"},status=status.HTTP_201_CREATED)
-      return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-class TeacherListView(generics.ListAPIView):
-   serializer_class=UserSerializer
-   def get_queryset(self):
-      if self.request.user.groups.name=="Coach":
-         return User.objects.filter(Q(school= self.request.user.school.id) & ~Q(groups=self.request.user.groups.id))
-      if self.request.user.groups.name=="Teachers":
-         return User.objects.filter(username= self.request.user.username)
-      else:
-         return User.objects.none()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# elif self.request.user.is_authenticated and self.request.user.groups == None:
+#    return User.objects.filter(pk=self.request.user.id)

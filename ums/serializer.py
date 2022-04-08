@@ -12,15 +12,39 @@ from .models import School, User
 from .tokens import generate_token
 
 
-class UserSerializer(serializers.ModelSerializer):
-   """Create a serializer to the model user """
-   password= serializers.CharField(min_length=2,style={"input_type":"password"})
+class SchoolSerializer(serializers.ModelSerializer):
+   """ School serializer for school model """
+   class Meta:
+      model= School
+      fields= ['id','name',]
+
+
+class GroupSerializer(serializers.ModelSerializer):
+   """ Group serializer for group model """
+   class Meta:
+      model= Group
+      fields=['id','name']
+
+
+class UserListSerializer(serializers.ModelSerializer):
+   """list a serializer to the model user """
+   school= SchoolSerializer()
+   groups= GroupSerializer()
    class Meta:
       model=  User
-      fields= ["id", "username", "email", "phone_number", "dob", "street","zip_code", "city", "state", "country", "password", "school", "groups"]
+      fields= ["id", "username", "email", "phone_number", "dob", "street","zip_code",\
+          "city", "state", "country", "password", "school", "groups"]
+
+
+class UserSerializer(serializers.ModelSerializer):
+   """ Create a serializer to the model user """
+   class Meta:
+      model=  User
+      fields= ["id", "username", "email", "phone_number", "dob", "street",\
+               "zip_code","city","state", "country","password", "school", "groups"]
 
    def create(self, validated_data):
-      """ Createa new user and set all fields to the user """
+      """ Create a new user and set all fields to the user """
       user= User.objects.create(
          username = validated_data['username'],
          email = validated_data['email'],
@@ -32,13 +56,13 @@ class UserSerializer(serializers.ModelSerializer):
          country = validated_data['country'],
          state = validated_data['state'],
          school= validated_data['school'],
-         groups= validated_data['groups']
+         groups= validated_data['groups'],
       )
       user.set_password(validated_data['password'])
       user.is_active=False
       user.save()
 
-      """ Send user a confirmatio mail that it can activate his account"""
+      """ Send user a  mail to activate his account"""
       current_site = Site.objects.get_current()
       email_subject= "Confirm your Email"
       message2= render_to_string("email_confirmation.html", {
@@ -57,14 +81,15 @@ class UserSerializer(serializers.ModelSerializer):
       email.send()
       return user
 
+
 class UserUpdateSerializer(serializers.ModelSerializer):
-   """Create a serializer to the model user """
-   password= serializers.CharField(read_only=True)
+   """ Create a serializer to the model user while update """
    class Meta:
       model=  User
       fields= ["id","username","email", "phone_number", "dob", "street",
-      "zip_code", "city", "state", "country","password","groups","school"]
-      read_only_fields= ('username', "email",)
+      "zip_code", "city", "state", "country","groups","school"]
+      read_only_fields= ('username', "email",'password')
+
 
 class ChangePasswordSeriallizer(serializers.Serializer):
    """Change user password with old password"""
@@ -73,34 +98,31 @@ class ChangePasswordSeriallizer(serializers.Serializer):
    password1= serializers.CharField(required=True)
    password2= serializers.CharField(required=True)
 
+
 class SendPasswordResetEmailSerializer(serializers.Serializer):
-   """Reset your password with the help of email address"""
+   """Reset your password with email address"""
    email= serializers.EmailField(required=True)
    class Meta:
       model= User
       fields=['email']
          
+
 class ResetNewPasswordSerializer(serializers.Serializer):
    """Set your new password by the link sent on email address"""
    model=User
    password1= serializers.CharField(required=True)
    password2= serializers.CharField(required=True)
 
-class CustomLoginTokenSerializer(serializers.Serializer):
+
+class LoginSerializer(serializers.Serializer):
+   """"""
    model = User
    username= serializers.CharField()
    email=    serializers.EmailField()
    password= serializers.CharField()
 
-class Customlogout(serializers.Serializer):
+
+class LogoutSerializer(serializers.Serializer):
    model=User
 
-class SchoolSerializer(serializers.ModelSerializer):
-   class Meta:
-      model= School
-      fields= ['name',]
 
-class GroupSerializer(serializers.ModelSerializer):
-   class Meta:
-      model= Group
-      fields=['name']
